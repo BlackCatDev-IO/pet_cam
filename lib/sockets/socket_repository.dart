@@ -1,13 +1,21 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:pet_cam/env.dart';
 import 'package:pet_cam/sockets/bloc/socket_bloc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket;
 
 class SocketRepository {
   SocketRepository({
-    required socket.Socket socket,
-  }) : _socket = socket {
+    socket.Socket? socketio,
+  }) : _socket = socketio ??
+            socket.io(
+              Env.serverUrl,
+              <String, dynamic>{
+                'transports': ['websocket'],
+                'autoConnect': false,
+              },
+            ) {
     _initSocketListeners();
   }
 
@@ -28,7 +36,8 @@ class SocketRepository {
         (data) {
           final message = (data as Map)['data'] as String;
           final timestamp = data['timestamp'] as String;
-          final receivedMessage = '$message at $timestamp';
+          final receivedMessage =
+              'Socket Message From Server $message at $timestamp';
           log(receivedMessage);
           _eventsStreamController.add(receivedMessage);
         },
