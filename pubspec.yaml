@@ -1,5 +1,5 @@
 name: pet_cam
-description: turns your device into a petcam or baby monitor
+description: Turns your device into a pet cam or baby monitor
 version: 1.0.0+1
 publish_to: none
 
@@ -14,6 +14,7 @@ dependencies:
   flutter_bloc: ^8.1.2
   flutter_localizations:
     sdk: flutter
+  flutter_webrtc: ^0.9.46
   intl: ^0.18.1
   socket_io_client: ^2.0.3+1
 

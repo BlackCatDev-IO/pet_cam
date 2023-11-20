@@ -12,4 +12,18 @@ class SocketEmitEvent extends SocketEvent {
   final Map<String, dynamic> data;
 }
 
-class SocketInitListener extends SocketEvent {}
+class SocketCreateRoom extends SocketEvent {
+  SocketCreateRoom({
+    required this.localVideo,
+    required this.remoteVideo,
+  });
+
+  final RTCVideoRenderer localVideo;
+  final RTCVideoRenderer remoteVideo;
+}
+
+class SocketJoinRoom extends SocketEvent {}
+
+class OpenUserMedia extends SocketEvent {}
+
+class ToggleCamera extends SocketEvent {}

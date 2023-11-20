@@ -1,7 +1,7 @@
 import 'dart:async';
-
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:pet_cam/sockets/socket_repository.dart';
 
 part 'socket_event.dart';
@@ -12,25 +12,42 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
   SocketBloc({required SocketRepository socketRepository})
       : _socketRepository = socketRepository,
         super(const SocketState()) {
-    on<SocketInitListener>(_onSocketInitListener);
     on<SocketEmitEvent>(_onSocketEmitEvent);
+    on<SocketCreateRoom>(_onSocketCreateRoom);
+    on<SocketJoinRoom>(_onSocketJoinRoom);
+    on<ToggleCamera>(_onToggleCamera);
   }
 
   final SocketRepository _socketRepository;
 
-  Future<void> _onSocketInitListener(
-    SocketInitListener event,
+  Future<void> _onSocketCreateRoom(
+    SocketCreateRoom event,
     Emitter<SocketState> emit,
   ) async {
+    await _socketRepository.openUserMedia();
+    await _socketRepository.createRoom();
     await emit.forEach(
-      _socketRepository.eventStream,
-      onData: (data) => state.copyWith(
-        data: data,
-        receivedMessages: [
-          ...state.receivedMessages,
-          data,
-        ],
-      ),
+      _socketRepository.remoteMediaStream,
+      onData: (mediaStream) {
+        return state.copyWith(
+          remoteStream: mediaStream,
+        );
+      },
+    );
+  }
+
+  Future<void> _onSocketJoinRoom(
+    SocketJoinRoom event,
+    Emitter<SocketState> emit,
+  ) async {
+    await _socketRepository.joinRoom();
+    await emit.forEach(
+      _socketRepository.remoteMediaStream,
+      onData: (mediaStream) {
+        return state.copyWith(
+          remoteStream: mediaStream,
+        );
+      },
     );
   }
 
@@ -48,5 +65,26 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
   Future<void> close() {
     _socketRepository.dispose();
     return super.close();
+  }
+
+  Future<void> _onToggleCamera(
+    ToggleCamera event,
+    Emitter<SocketState> emit,
+  ) async {
+    if (state.remoteStream == null) return;
+
+    final videoTrack = state.remoteStream!
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == 'video');
+
+    await Helper.switchCamera(videoTrack);
+
+    emit(
+      state.copyWith(
+        cameraType: state.cameraType == CameraType.front
+            ? CameraType.rear
+            : CameraType.front,
+      ),
+    );
   }
 }

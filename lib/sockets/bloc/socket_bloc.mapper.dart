@@ -23,20 +23,40 @@ class SocketStateMapper extends ClassMapperBase<SocketState> {
   static String _$data(SocketState v) => v.data;
   static const Field<SocketState, String> _f$data =
       Field('data', _$data, opt: true, def: '');
+  static String _$roomId(SocketState v) => v.roomId;
+  static const Field<SocketState, String> _f$roomId =
+      Field('roomId', _$roomId, opt: true, def: 'pet_cam_room');
   static List<String> _$receivedMessages(SocketState v) => v.receivedMessages;
   static const Field<SocketState, List<String>> _f$receivedMessages =
       Field('receivedMessages', _$receivedMessages, opt: true, def: const []);
+  static MediaStream? _$localStream(SocketState v) => v.localStream;
+  static const Field<SocketState, MediaStream> _f$localStream =
+      Field('localStream', _$localStream, opt: true);
+  static MediaStream? _$remoteStream(SocketState v) => v.remoteStream;
+  static const Field<SocketState, MediaStream> _f$remoteStream =
+      Field('remoteStream', _$remoteStream, opt: true);
+  static CameraType _$cameraType(SocketState v) => v.cameraType;
+  static const Field<SocketState, CameraType> _f$cameraType =
+      Field('cameraType', _$cameraType, opt: true, def: CameraType.rear);
 
   @override
   final Map<Symbol, Field<SocketState, dynamic>> fields = const {
     #data: _f$data,
+    #roomId: _f$roomId,
     #receivedMessages: _f$receivedMessages,
+    #localStream: _f$localStream,
+    #remoteStream: _f$remoteStream,
+    #cameraType: _f$cameraType,
   };
 
   static SocketState _instantiate(DecodingData data) {
     return SocketState(
         data: data.dec(_f$data),
-        receivedMessages: data.dec(_f$receivedMessages));
+        roomId: data.dec(_f$roomId),
+        receivedMessages: data.dec(_f$receivedMessages),
+        localStream: data.dec(_f$localStream),
+        remoteStream: data.dec(_f$remoteStream),
+        cameraType: data.dec(_f$cameraType));
   }
 
   @override
@@ -94,7 +114,13 @@ abstract class SocketStateCopyWith<$R, $In extends SocketState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
       get receivedMessages;
-  $R call({String? data, List<String>? receivedMessages});
+  $R call(
+      {String? data,
+      String? roomId,
+      List<String>? receivedMessages,
+      MediaStream? localStream,
+      MediaStream? remoteStream,
+      CameraType? cameraType});
   SocketStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -113,16 +139,30 @@ class _SocketStateCopyWithImpl<$R, $Out>
           (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(receivedMessages: v));
   @override
-  $R call({String? data, List<String>? receivedMessages}) =>
+  $R call(
+          {String? data,
+          String? roomId,
+          List<String>? receivedMessages,
+          Object? localStream = $none,
+          Object? remoteStream = $none,
+          CameraType? cameraType}) =>
       $apply(FieldCopyWithData({
         if (data != null) #data: data,
-        if (receivedMessages != null) #receivedMessages: receivedMessages
+        if (roomId != null) #roomId: roomId,
+        if (receivedMessages != null) #receivedMessages: receivedMessages,
+        if (localStream != $none) #localStream: localStream,
+        if (remoteStream != $none) #remoteStream: remoteStream,
+        if (cameraType != null) #cameraType: cameraType
       }));
   @override
   SocketState $make(CopyWithData data) => SocketState(
       data: data.get(#data, or: $value.data),
+      roomId: data.get(#roomId, or: $value.roomId),
       receivedMessages:
-          data.get(#receivedMessages, or: $value.receivedMessages));
+          data.get(#receivedMessages, or: $value.receivedMessages),
+      localStream: data.get(#localStream, or: $value.localStream),
+      remoteStream: data.get(#remoteStream, or: $value.remoteStream),
+      cameraType: data.get(#cameraType, or: $value.cameraType));
 
   @override
   SocketStateCopyWith<$R2, SocketState, $Out2> $chain<$R2, $Out2>(
