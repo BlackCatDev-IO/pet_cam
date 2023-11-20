@@ -13,7 +13,8 @@ class App extends StatelessWidget {
     return BlocProvider<SocketBloc>(
       create: (context) => SocketBloc(
         socketRepository: SocketRepository(),
-      )..add(SocketInitListener()),
+      ),
+      lazy: false,
       child: MaterialApp(
         theme: ThemeData(
           appBarTheme: const AppBarTheme(color: Color(0xFF13B9FF)),
@@ -23,7 +24,7 @@ class App extends StatelessWidget {
         ),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: SocketPage(),
+        home: const SocketPage(),
       ),
     );
   }
