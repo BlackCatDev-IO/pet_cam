@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pet_cam/app/app.dart';
+import 'package:pet_cam/app/view/app.dart';
 import 'package:pet_cam/sockets/view/socket_page.dart';
 
 void main() {
