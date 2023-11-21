@@ -71,13 +71,7 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
     ToggleCamera event,
     Emitter<SocketState> emit,
   ) async {
-    if (state.remoteStream == null) return;
-
-    final videoTrack = state.remoteStream!
-        .getVideoTracks()
-        .firstWhere((track) => track.kind == 'video');
-
-    await Helper.switchCamera(videoTrack);
+    await _socketRepository.toggleCamera();
 
     emit(
       state.copyWith(

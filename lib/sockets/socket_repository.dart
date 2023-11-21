@@ -242,6 +242,17 @@ class SocketRepository {
     }
   }
 
+  Future<void> toggleCamera() async {
+    if (localStream == null) {
+      throw Exception('Stream is not initialized');
+    }
+
+    final videoTrack = localStream!
+        .getVideoTracks()
+        .firstWhere((track) => track.kind == 'video');
+    await Helper.switchCamera(videoTrack);
+  }
+
   void _registerPeerConnectionListeners() {
     _peerConnection?.onIceGatheringState = (RTCIceGatheringState state) {
       _logSocketRepository('ICE gathering state changed: $state');
