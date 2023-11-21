@@ -6,6 +6,64 @@
 
 part of 'socket_bloc.dart';
 
+class ConnectionStatusMapper extends EnumMapper<ConnectionStatus> {
+  ConnectionStatusMapper._();
+
+  static ConnectionStatusMapper? _instance;
+  static ConnectionStatusMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ConnectionStatusMapper._());
+    }
+    return _instance!;
+  }
+
+  static ConnectionStatus fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ConnectionStatus decode(dynamic value) {
+    switch (value) {
+      case 'connecting':
+        return ConnectionStatus.connecting;
+      case 'connected':
+        return ConnectionStatus.connected;
+      case 'disconnecting':
+        return ConnectionStatus.disconnecting;
+      case 'disconnected':
+        return ConnectionStatus.disconnected;
+      case 'error':
+        return ConnectionStatus.error;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ConnectionStatus self) {
+    switch (self) {
+      case ConnectionStatus.connecting:
+        return 'connecting';
+      case ConnectionStatus.connected:
+        return 'connected';
+      case ConnectionStatus.disconnecting:
+        return 'disconnecting';
+      case ConnectionStatus.disconnected:
+        return 'disconnected';
+      case ConnectionStatus.error:
+        return 'error';
+    }
+  }
+}
+
+extension ConnectionStatusMapperExtension on ConnectionStatus {
+  String toValue() {
+    ConnectionStatusMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ConnectionStatus>(this) as String;
+  }
+}
+
 class SocketStateMapper extends ClassMapperBase<SocketState> {
   SocketStateMapper._();
 
@@ -13,6 +71,7 @@ class SocketStateMapper extends ClassMapperBase<SocketState> {
   static SocketStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = SocketStateMapper._());
+      ConnectionStatusMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -20,6 +79,11 @@ class SocketStateMapper extends ClassMapperBase<SocketState> {
   @override
   final String id = 'SocketState';
 
+  static ConnectionStatus _$connectionStatus(SocketState v) =>
+      v.connectionStatus;
+  static const Field<SocketState, ConnectionStatus> _f$connectionStatus = Field(
+      'connectionStatus', _$connectionStatus,
+      opt: true, def: ConnectionStatus.disconnected);
   static String _$data(SocketState v) => v.data;
   static const Field<SocketState, String> _f$data =
       Field('data', _$data, opt: true, def: '');
@@ -41,6 +105,7 @@ class SocketStateMapper extends ClassMapperBase<SocketState> {
 
   @override
   final Map<Symbol, Field<SocketState, dynamic>> fields = const {
+    #connectionStatus: _f$connectionStatus,
     #data: _f$data,
     #roomId: _f$roomId,
     #receivedMessages: _f$receivedMessages,
@@ -51,6 +116,7 @@ class SocketStateMapper extends ClassMapperBase<SocketState> {
 
   static SocketState _instantiate(DecodingData data) {
     return SocketState(
+        connectionStatus: data.dec(_f$connectionStatus),
         data: data.dec(_f$data),
         roomId: data.dec(_f$roomId),
         receivedMessages: data.dec(_f$receivedMessages),
@@ -115,7 +181,8 @@ abstract class SocketStateCopyWith<$R, $In extends SocketState, $Out>
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
       get receivedMessages;
   $R call(
-      {String? data,
+      {ConnectionStatus? connectionStatus,
+      String? data,
       String? roomId,
       List<String>? receivedMessages,
       MediaStream? localStream,
@@ -140,13 +207,15 @@ class _SocketStateCopyWithImpl<$R, $Out>
           (v) => call(receivedMessages: v));
   @override
   $R call(
-          {String? data,
+          {ConnectionStatus? connectionStatus,
+          String? data,
           String? roomId,
           List<String>? receivedMessages,
           Object? localStream = $none,
           Object? remoteStream = $none,
           CameraType? cameraType}) =>
       $apply(FieldCopyWithData({
+        if (connectionStatus != null) #connectionStatus: connectionStatus,
         if (data != null) #data: data,
         if (roomId != null) #roomId: roomId,
         if (receivedMessages != null) #receivedMessages: receivedMessages,
@@ -156,6 +225,8 @@ class _SocketStateCopyWithImpl<$R, $Out>
       }));
   @override
   SocketState $make(CopyWithData data) => SocketState(
+      connectionStatus:
+          data.get(#connectionStatus, or: $value.connectionStatus),
       data: data.get(#data, or: $value.data),
       roomId: data.get(#roomId, or: $value.roomId),
       receivedMessages:

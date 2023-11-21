@@ -15,6 +15,7 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
     on<SocketEmitEvent>(_onSocketEmitEvent);
     on<SocketCreateRoom>(_onSocketCreateRoom);
     on<SocketJoinRoom>(_onSocketJoinRoom);
+    on<SocketCloseConnection>(_onSocketCloseConnection);
     on<ToggleCamera>(_onToggleCamera);
   }
 
@@ -24,7 +25,6 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
     SocketCreateRoom event,
     Emitter<SocketState> emit,
   ) async {
-    await _socketRepository.openUserMedia();
     await _socketRepository.createRoom();
     await emit.forEach(
       _socketRepository.remoteMediaStream,
@@ -40,12 +40,17 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
     SocketJoinRoom event,
     Emitter<SocketState> emit,
   ) async {
+    emit(state.copyWith(connectionStatus: ConnectionStatus.connecting));
     await _socketRepository.joinRoom();
-    await emit.forEach(
+
+    await emit.onEach(
       _socketRepository.remoteMediaStream,
       onData: (mediaStream) {
-        return state.copyWith(
-          remoteStream: mediaStream,
+        emit(
+          state.copyWith(
+            connectionStatus: ConnectionStatus.connected,
+            remoteStream: mediaStream,
+          ),
         );
       },
     );
@@ -61,12 +66,6 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
     );
   }
 
-  @override
-  Future<void> close() {
-    _socketRepository.dispose();
-    return super.close();
-  }
-
   Future<void> _onToggleCamera(
     ToggleCamera event,
     Emitter<SocketState> emit,
@@ -80,5 +79,25 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
             : CameraType.front,
       ),
     );
+  }
+
+  Future<void> _onSocketCloseConnection(
+    SocketCloseConnection event,
+    Emitter<SocketState> emit,
+  ) async {
+    emit(state.copyWith(connectionStatus: ConnectionStatus.disconnecting));
+
+    await _socketRepository.closeConnection(
+      localVideo: event.localVideo,
+      remoteStream: state.remoteStream,
+    );
+
+    emit(state.copyWith(connectionStatus: ConnectionStatus.disconnected));
+  }
+
+  @override
+  Future<void> close() {
+    _socketRepository.dispose();
+    return super.close();
   }
 }

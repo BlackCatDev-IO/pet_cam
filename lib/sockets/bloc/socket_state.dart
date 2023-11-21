@@ -19,9 +19,27 @@ enum CameraType {
   rear,
 }
 
+@MappableEnum()
+enum ConnectionStatus {
+  connecting,
+  connected,
+  disconnecting,
+  disconnected,
+  error,
+}
+
+extension ConnectionStatusX on ConnectionStatus {
+  bool get isDisconnecting => this == ConnectionStatus.disconnecting;
+  bool get isConnecting => this == ConnectionStatus.connecting;
+  bool get isConnected => this == ConnectionStatus.connected;
+  bool get isDisconnected => this == ConnectionStatus.disconnected;
+  bool get isError => this == ConnectionStatus.error;
+}
+
 @MappableClass()
 class SocketState with SocketStateMappable {
   const SocketState({
+    this.connectionStatus = ConnectionStatus.disconnected,
     this.data = '',
     this.roomId = 'pet_cam_room',
     this.receivedMessages = const [],
@@ -30,6 +48,7 @@ class SocketState with SocketStateMappable {
     this.cameraType = CameraType.rear,
   });
 
+  final ConnectionStatus connectionStatus;
   final String data;
   final List<String> receivedMessages;
   final String roomId;

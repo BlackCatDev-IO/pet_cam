@@ -7,13 +7,14 @@ import 'package:pet_cam/sockets/bloc/socket_bloc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket;
 
 const _room = 'pet_cam_room';
+const localHost = 'http://192.168.1.113:8000/';
 
 class SocketRepository {
   SocketRepository({
     socket.Socket? socketio,
   }) : _socket = socketio ??
             socket.io(
-              // _localHost,
+              // localHost,
               Env.serverUrl,
               <String, dynamic>{
                 'transports': ['websocket'],
@@ -23,7 +24,21 @@ class SocketRepository {
     _initSocketListeners();
   }
 
-  final configuration = {
+  final socket.Socket _socket;
+
+  RTCPeerConnection? _peerConnection;
+  RTCSessionDescription? offer;
+  MediaStream? localStream;
+
+  final _remoteMediaStreamController =
+      StreamController<MediaStream>.broadcast();
+
+  Stream<MediaStream> get remoteMediaStream =>
+      _remoteMediaStreamController.stream;
+
+  final iceList = <Map<String, dynamic>>[];
+
+  static const _configuration = {
     'iceServers': [
       {
         'urls': [
@@ -33,18 +48,6 @@ class SocketRepository {
       }
     ],
   };
-
-  static const _localHost = 'http://192.168.1.120:8000/';
-
-  final socket.Socket _socket;
-
-  final _localMediaStreamController = StreamController<MediaStream>();
-  final _remoteMediaStreamController = StreamController<MediaStream>();
-
-  Stream<MediaStream> get localMediaStream =>
-      _localMediaStreamController.stream;
-  Stream<MediaStream> get remoteMediaStream =>
-      _remoteMediaStreamController.stream;
 
   void _initSocketListeners() {
     _socket
@@ -64,22 +67,18 @@ class SocketRepository {
       );
   }
 
-  RTCPeerConnection? _peerConnection;
-  MediaStream? localStream;
-  String? currentRoomText;
-  RTCSessionDescription? offer;
-
-  final iceList = <Map<String, dynamic>>[];
-
   Future<void> createRoom() async {
+    await _openUserMedia();
     _logSocketRepository(
-      'Create PeerConnection with configuration: $configuration',
+      'Create PeerConnection with configuration: $_configuration',
     );
 
-    _peerConnection = await createPeerConnection(configuration);
+    _peerConnection = await createPeerConnection(_configuration);
 
     _registerPeerConnectionListeners();
 
+    // Gets local media stream from device camera and adds it to the peer
+    // connection
     localStream?.getTracks().forEach((track) {
       _peerConnection?.addTrack(track, localStream!);
     });
@@ -87,9 +86,7 @@ class SocketRepository {
     _peerConnection?.onIceCandidate = (RTCIceCandidate candidate) {
       iceList.add(candidate.toMap() as Map<String, dynamic>);
     };
-    // Finish Code for collecting ICE candidate
 
-    // Add code for creating a room
     offer = await _peerConnection!.createOffer();
     await _peerConnection!.setLocalDescription(offer!);
     _logSocketRepository('Created offer: $offer');
@@ -126,10 +123,11 @@ class SocketRepository {
     final offer =
         (data as Map<String, dynamic>)['offer'] as Map<String, dynamic>;
     final iceList = data['ice'] as List?;
+
     _logSocketRepository(
       '_answerOffer: Received offer: ice $iceList',
     );
-    _peerConnection = await createPeerConnection(configuration);
+    _peerConnection = await createPeerConnection(_configuration);
 
     _registerPeerConnectionListeners();
 
@@ -186,7 +184,7 @@ class SocketRepository {
     );
   }
 
-  Future<void> openUserMedia() async {
+  Future<void> _openUserMedia() async {
     final mediaConstraints = <String, dynamic>{
       'audio': false,
       'video': {
@@ -270,6 +268,26 @@ class SocketRepository {
       _logSocketRepository('onAddStream $stream');
       _remoteMediaStreamController.add(stream);
     };
+  }
+
+  Future<void> closeConnection({
+    required RTCVideoRenderer localVideo,
+    required MediaStream? remoteStream,
+  }) async {
+    if (localVideo.srcObject != null) {
+      final tracks = localVideo.srcObject!.getTracks();
+      for (final track in tracks) {
+        await track.stop();
+      }
+    }
+
+    if (remoteStream != null) {
+      remoteStream.getTracks().forEach((track) => track.stop());
+    }
+    if (_peerConnection != null) await _peerConnection!.close();
+
+    await localStream?.dispose();
+    await remoteStream?.dispose();
   }
 
   void emitSocketEvent(String eventName, Map<String, dynamic> message) {

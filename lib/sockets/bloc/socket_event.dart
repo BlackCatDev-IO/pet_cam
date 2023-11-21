@@ -20,6 +20,12 @@ class SocketCreateRoom extends SocketEvent {
 
 class SocketJoinRoom extends SocketEvent {}
 
-class OpenUserMedia extends SocketEvent {}
+class SocketCloseConnection extends SocketEvent {
+  SocketCloseConnection({
+    required this.localVideo,
+  });
+
+  final RTCVideoRenderer localVideo;
+}
 
 class ToggleCamera extends SocketEvent {}
