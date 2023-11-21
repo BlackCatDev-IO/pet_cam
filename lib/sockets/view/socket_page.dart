@@ -35,55 +35,43 @@ class _SocketPageState extends State<SocketPage> {
 
   @override
   Widget build(BuildContext context) {
+    final socketBloc = context.read<SocketBloc>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pet Cam'),
       ),
       body: Column(
         children: [
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () {},
-            child: const Text('Open camera & microphone'),
-          ),
           const SizedBox(
-            width: 8,
             height: 10,
           ),
           ElevatedButton(
             onPressed: () async {
-              context.read<SocketBloc>().add(
-                    SocketCreateRoom(
-                      localVideo: _localRenderer,
-                      remoteVideo: _remoteRenderer,
+              socketBloc.add(
+                SocketCreateRoom(
+                    // localVideo: _localRenderer,
+                    // remoteVideo: _remoteRenderer,
                     ),
-                  );
+              );
             },
-            child: const Text('Create room'),
+            child: const Text('Send Camera Feed'),
           ),
           const SizedBox(
             width: 8,
             height: 10,
           ),
           ElevatedButton(
-            onPressed: () {
-              context.read<SocketBloc>().add(
-                    SocketJoinRoom(),
-                  );
-            },
-            child: const Text('Join room'),
+            onPressed: () => socketBloc.add(SocketJoinRoom()),
+            child: const Text('View Remote Camera Feed'),
           ),
-          const SizedBox(
-            width: 8,
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
               context.read<SocketBloc>().add(
                     SocketEmitEvent(
                       eventName: 'room_message',
                       data: {
-                        'room': 'test room 1',
+                        'room': 'pet_cam_room',
                         'message': 'test message',
                       },
                     ),
@@ -94,8 +82,8 @@ class _SocketPageState extends State<SocketPage> {
           ),
           const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: () {},
-            child: const Text('Hangup'),
+            onPressed: () => socketBloc.add(ToggleCamera()),
+            child: const Text('Toggle Camera'),
           ),
           const SizedBox(height: 8),
           Expanded(
