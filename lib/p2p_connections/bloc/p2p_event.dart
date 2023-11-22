@@ -2,8 +2,8 @@ part of 'p2p_bloc.dart';
 
 abstract class P2PEvent {}
 
-class SocketEmitEvent extends P2PEvent {
-  SocketEmitEvent({
+class EmitSocketEvent extends P2PEvent {
+  EmitSocketEvent({
     required this.eventName,
     required this.data,
   });
@@ -12,16 +12,16 @@ class SocketEmitEvent extends P2PEvent {
   final Map<String, dynamic> data;
 }
 
-class SocketInitEventListener extends P2PEvent {}
+class InitSocketEventListener extends P2PEvent {}
 
-class SocketCreateRoom extends P2PEvent {
-  SocketCreateRoom();
-}
+class InitConnectionFromClient extends P2PEvent {}
 
-class SocketJoinRoom extends P2PEvent {}
+class CreateSocketRoom extends P2PEvent {}
 
-class SocketCloseConnection extends P2PEvent {
-  SocketCloseConnection({
+class JoinSocketRoom extends P2PEvent {}
+
+class CloseConnection extends P2PEvent {
+  CloseConnection({
     required this.localVideo,
   });
 

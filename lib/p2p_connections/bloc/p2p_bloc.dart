@@ -16,11 +16,12 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
   })  : _socketRepository = socketRepository,
         _webRtcService = webRtcService,
         super(const P2PState()) {
-    on<SocketEmitEvent>(_onSocketEmitEvent);
-    on<SocketCreateRoom>(_onSocketCreateRoom);
-    on<SocketInitEventListener>(_onSocketInitEventListener);
-    on<SocketJoinRoom>(_onSocketJoinRoom);
-    on<SocketCloseConnection>(_onSocketCloseConnection);
+    on<InitSocketEventListener>(_onInitSocketEventListener);
+    on<InitConnectionFromClient>(_onInitConnectionFromClient);
+    on<EmitSocketEvent>(_onEmitSocketEvent);
+    on<CreateSocketRoom>(_onCreateSocketRoom);
+    on<JoinSocketRoom>(_onJoinSocketRoom);
+    on<CloseConnection>(_onCloseConnection);
     on<ToggleCamera>(_onToggleCamera);
 
     _initIceListener();
@@ -32,8 +33,8 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
 
   final _iceCandidateList = <Map<String, dynamic>>[];
 
-  Future<void> _onSocketInitEventListener(
-    SocketInitEventListener event,
+  Future<void> _onInitSocketEventListener(
+    InitSocketEventListener event,
     Emitter<P2PState> emit,
   ) async {
     await emit.onEach(
@@ -66,6 +67,11 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
       },
     );
   }
+
+  Future<void> _onInitConnectionFromClient(
+    InitConnectionFromClient event,
+    Emitter<P2PState> emit,
+  ) async {}
 
   void _handleRemoteRoomMessage(dynamic data) {
     final map = data as Map<String, dynamic>;
@@ -117,8 +123,8 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     );
   }
 
-  Future<void> _onSocketCreateRoom(
-    SocketCreateRoom event,
+  Future<void> _onCreateSocketRoom(
+    CreateSocketRoom event,
     Emitter<P2PState> emit,
   ) async {
     await _webRtcService.openUserMedia();
@@ -139,8 +145,8 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     );
   }
 
-  Future<void> _onSocketJoinRoom(
-    SocketJoinRoom event,
+  Future<void> _onJoinSocketRoom(
+    JoinSocketRoom event,
     Emitter<P2PState> emit,
   ) async {
     emit(state.copyWith(connectionStatus: ConnectionStatus.connecting));
@@ -163,8 +169,8 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     );
   }
 
-  Future<void> _onSocketEmitEvent(
-    SocketEmitEvent event,
+  Future<void> _onEmitSocketEvent(
+    EmitSocketEvent event,
     Emitter<P2PState> emit,
   ) async {
     _socketRepository.emitSocketEvent(
@@ -188,8 +194,8 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     );
   }
 
-  Future<void> _onSocketCloseConnection(
-    SocketCloseConnection event,
+  Future<void> _onCloseConnection(
+    CloseConnection event,
     Emitter<P2PState> emit,
   ) async {
     emit(state.copyWith(connectionStatus: ConnectionStatus.disconnecting));
