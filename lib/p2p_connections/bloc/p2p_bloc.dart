@@ -19,10 +19,10 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
         _webRtcService = webRtcService,
         super(const P2PState()) {
     on<InitSocketEventListener>(_onInitSocketEventListener);
-    on<InitConnectionFromClient>(_onInitConnectionFromClient);
+
     on<EmitSocketEvent>(_onEmitSocketEvent);
-    on<CreateSocketRoom>(_onCreateSocketRoom);
-    on<JoinSocketRoom>(_onJoinSocketRoom);
+    on<CreateAndSendRtcOffer>(_onCreateAndSendRtcOffer);
+    on<ConnectToRemoteCamera>(_onConnectToRemoteCamera);
     on<CloseConnection>(_onCloseConnection);
     on<ToggleCamera>(_onToggleCamera);
 
@@ -42,7 +42,7 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     await emit.onEach(
       _socketRepository.eventStream,
       onData: (eventData) {
-        final eventName = eventData['event'] as String?;
+        final eventName = eventData['event'] as String;
 
         if (eventName == SocketEvents.roomJoined.name) {
           if (_offer != null) {
@@ -73,11 +73,6 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
       },
     );
   }
-
-  Future<void> _onInitConnectionFromClient(
-    InitConnectionFromClient event,
-    Emitter<P2PState> emit,
-  ) async {}
 
   void _handleRemoteRoomMessage(dynamic data) {
     final map = data as Map<String, dynamic>;
@@ -145,12 +140,11 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     );
   }
 
-  Future<void> _onCreateSocketRoom(
-    CreateSocketRoom event,
+  Future<void> _onCreateAndSendRtcOffer(
+    CreateAndSendRtcOffer event,
     Emitter<P2PState> emit,
   ) async {
-    await _webRtcService.openUserMedia();
-    _offer = await _webRtcService.createRoom();
+    _offer = await _webRtcService.createAndSendRtcOffer();
 
     _socketRepository.emitSocketEvent(
       SocketMessage(
@@ -160,19 +154,10 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
         data: {'offer': _offer!.toMap()},
       ),
     );
-
-    await emit.forEach(
-      _webRtcService.remoteMediaStream,
-      onData: (mediaStream) {
-        return state.copyWith(
-          remoteStream: mediaStream,
-        );
-      },
-    );
   }
 
-  Future<void> _onJoinSocketRoom(
-    JoinSocketRoom event,
+  Future<void> _onConnectToRemoteCamera(
+    ConnectToRemoteCamera event,
     Emitter<P2PState> emit,
   ) async {
     emit(state.copyWith(connectionStatus: ConnectionStatus.connecting));

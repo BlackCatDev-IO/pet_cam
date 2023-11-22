@@ -14,11 +14,9 @@ class EmitSocketEvent extends P2PEvent {
 
 class InitSocketEventListener extends P2PEvent {}
 
-class InitConnectionFromClient extends P2PEvent {}
+class CreateAndSendRtcOffer extends P2PEvent {}
 
-class CreateSocketRoom extends P2PEvent {}
-
-class JoinSocketRoom extends P2PEvent {}
+class ConnectToRemoteCamera extends P2PEvent {}
 
 class CloseConnection extends P2PEvent {
   CloseConnection({

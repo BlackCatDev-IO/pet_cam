@@ -36,8 +36,8 @@ class WebRtcService {
     ],
   };
 
-  Future<RTCSessionDescription> createRoom() async {
-    await openUserMedia();
+  Future<RTCSessionDescription> createAndSendRtcOffer() async {
+    await _openUserMedia();
     _logWebRtcRepository(
       'Create PeerConnection with configuration: $_configuration',
     );
@@ -132,7 +132,7 @@ class WebRtcService {
     _peerConnection?.setRemoteDescription(offerResponse);
   }
 
-  Future<void> openUserMedia() async {
+  Future<void> _openUserMedia() async {
     final mediaConstraints = <String, dynamic>{
       'audio': false,
       'video': {
@@ -146,7 +146,7 @@ class WebRtcService {
         'optional': <dynamic>[],
       },
     };
-    
+
     try {
       final stream =
           await navigator.mediaDevices.getUserMedia(mediaConstraints);
