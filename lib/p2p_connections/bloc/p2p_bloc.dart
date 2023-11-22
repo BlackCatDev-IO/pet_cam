@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:pet_cam/p2p_connections/socket_message.dart';
 import 'package:pet_cam/p2p_connections/socket_repository.dart';
 import 'package:pet_cam/web_rtc/web_rtc_service.dart';
 
@@ -45,12 +47,16 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
         if (eventName == SocketEvents.roomJoined.name) {
           if (_offer != null) {
             _socketRepository.emitSocketEvent(
-              SocketEvents.sendWebRtcOffer.name,
-              {
-                'room': room,
-                'offer': _offer!.toMap(),
-                'ice': _iceCandidateList,
-              },
+              SocketMessage(
+                event: SocketEvents.sendWebRtcOffer.name,
+                room: room,
+                outputEvent: 'offer',
+                data: {
+                  'room': room,
+                  'offer': _offer!.toMap(),
+                  'ice': _iceCandidateList,
+                },
+              ),
             );
 
             _webRtcService.addMediaTracksToPeer();
@@ -75,8 +81,11 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
 
   void _handleRemoteRoomMessage(dynamic data) {
     final map = data as Map<String, dynamic>;
+    _logP2PBloc('room message $map');
+
     final iceCandidates = map['ice'] as Map<String, dynamic>?;
     final answer = map['answer'] as Map<String, dynamic>?;
+    final init = map['init'] as Map<String, dynamic>?;
 
     if (iceCandidates != null) {
       final iceCandidate = RTCIceCandidate(
@@ -96,6 +105,8 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
 
       _webRtcService.setRemoteDescription(offerResponse);
     }
+
+    if (init != null) {}
   }
 
   Future<void> _answerRtcOffer({
@@ -106,10 +117,17 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
         return;
       }
 
-      _socketRepository.emitSocketEvent(SocketEvents.roomMessage.name, {
-        'room': room,
-        'ice': candidate.toMap(),
-      });
+      _socketRepository.emitSocketEvent(
+        SocketMessage(
+          event: SocketEvents.roomMessage.name,
+          room: room,
+          outputEvent: SocketEvents.roomMessage.name,
+          data: {
+            'room': room,
+            'ice': candidate.toMap(),
+          },
+        ),
+      );
     }
 
     final offer = await _webRtcService.answerOffer(
@@ -118,8 +136,12 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     );
 
     _socketRepository.emitSocketEvent(
-      SocketEvents.roomMessage.name,
-      offer,
+      SocketMessage(
+        event: SocketEvents.roomMessage.name,
+        room: room,
+        outputEvent: SocketEvents.roomMessage.name,
+        data: offer,
+      ),
     );
   }
 
@@ -131,8 +153,12 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     _offer = await _webRtcService.createRoom();
 
     _socketRepository.emitSocketEvent(
-      SocketEvents.joinRoom.name,
-      {'room': room, 'offer': _offer!.toMap()},
+      SocketMessage(
+        event: SocketEvents.joinRoom.name,
+        room: room,
+        outputEvent: SocketEvents.roomJoined.name,
+        data: {'offer': _offer!.toMap()},
+      ),
     );
 
     await emit.forEach(
@@ -152,8 +178,12 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     emit(state.copyWith(connectionStatus: ConnectionStatus.connecting));
 
     _socketRepository.emitSocketEvent(
-      SocketEvents.joinRoom.name,
-      {'room': room},
+      SocketMessage(
+        event: SocketEvents.joinRoom.name,
+        room: room,
+        outputEvent: SocketEvents.roomJoined.name,
+        data: {},
+      ),
     );
 
     await emit.onEach(
@@ -174,8 +204,12 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     Emitter<P2PState> emit,
   ) async {
     _socketRepository.emitSocketEvent(
-      event.eventName,
-      event.data,
+      SocketMessage(
+        event: event.eventName,
+        room: room,
+        outputEvent: SocketEvents.roomMessage.name,
+        data: event.data,
+      ),
     );
   }
 
@@ -202,6 +236,10 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
 
   void _initIceListener() {
     _webRtcService.iceCandidateStream.listen(_iceCandidateList.add);
+  }
+
+  void _logP2PBloc(String message) {
+    log(message, name: 'P2PBloc');
   }
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:pet_cam/env.dart';
+import 'package:pet_cam/p2p_connections/socket_message.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket;
 
 const room = 'pet_cam_room';
@@ -14,6 +15,7 @@ enum SocketEvents {
   roomJoined('room_joined'),
   offer('offer'),
   sendWebRtcOffer('send_webrtc_offer'),
+  initConnectionFromClient('init_connection_from_client'),
   joinRoom('join_room');
 
   const SocketEvents(this.name);
@@ -26,8 +28,8 @@ class SocketRepository {
     socket.Socket? socketio,
   }) : _socket = socketio ??
             socket.io(
-              // localHost,
-              Env.serverUrl,
+              localHost,
+              // Env.serverUrl,
               <String, dynamic>{
                 'transports': ['websocket'],
                 'autoConnect': false,
@@ -64,8 +66,8 @@ class SocketRepository {
       );
   }
 
-  void emitSocketEvent(String eventName, Map<String, dynamic> message) {
-    _socket.emit(eventName, message);
+  void emitSocketEvent(SocketMessage message) {
+    _socket.emit(message.event, message.toMap());
   }
 
   void _logSocketRepository(String message) {
