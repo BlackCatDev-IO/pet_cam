@@ -14,11 +14,6 @@ enum SocketEvents {
   final String name;
 }
 
-enum CameraType {
-  front,
-  rear,
-}
-
 @MappableEnum()
 enum ConnectionStatus {
   connecting,
@@ -40,19 +35,11 @@ extension ConnectionStatusX on ConnectionStatus {
 class P2PState with P2PStateMappable {
   const P2PState({
     this.connectionStatus = ConnectionStatus.disconnected,
-    this.data = '',
-    this.roomId = 'pet_cam_room',
-    this.receivedMessages = const [],
     this.localStream,
     this.remoteStream,
-    this.cameraType = CameraType.rear,
   });
 
   final ConnectionStatus connectionStatus;
-  final String data;
-  final List<String> receivedMessages;
-  final String roomId;
   final MediaStream? localStream;
   final MediaStream? remoteStream;
-  final CameraType cameraType;
 }

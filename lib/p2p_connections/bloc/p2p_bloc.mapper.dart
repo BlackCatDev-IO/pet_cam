@@ -83,45 +83,25 @@ class P2PStateMapper extends ClassMapperBase<P2PState> {
   static const Field<P2PState, ConnectionStatus> _f$connectionStatus = Field(
       'connectionStatus', _$connectionStatus,
       opt: true, def: ConnectionStatus.disconnected);
-  static String _$data(P2PState v) => v.data;
-  static const Field<P2PState, String> _f$data =
-      Field('data', _$data, opt: true, def: '');
-  static String _$roomId(P2PState v) => v.roomId;
-  static const Field<P2PState, String> _f$roomId =
-      Field('roomId', _$roomId, opt: true, def: 'pet_cam_room');
-  static List<String> _$receivedMessages(P2PState v) => v.receivedMessages;
-  static const Field<P2PState, List<String>> _f$receivedMessages =
-      Field('receivedMessages', _$receivedMessages, opt: true, def: const []);
   static MediaStream? _$localStream(P2PState v) => v.localStream;
   static const Field<P2PState, MediaStream> _f$localStream =
       Field('localStream', _$localStream, opt: true);
   static MediaStream? _$remoteStream(P2PState v) => v.remoteStream;
   static const Field<P2PState, MediaStream> _f$remoteStream =
       Field('remoteStream', _$remoteStream, opt: true);
-  static CameraType _$cameraType(P2PState v) => v.cameraType;
-  static const Field<P2PState, CameraType> _f$cameraType =
-      Field('cameraType', _$cameraType, opt: true, def: CameraType.rear);
 
   @override
   final Map<Symbol, Field<P2PState, dynamic>> fields = const {
     #connectionStatus: _f$connectionStatus,
-    #data: _f$data,
-    #roomId: _f$roomId,
-    #receivedMessages: _f$receivedMessages,
     #localStream: _f$localStream,
     #remoteStream: _f$remoteStream,
-    #cameraType: _f$cameraType,
   };
 
   static P2PState _instantiate(DecodingData data) {
     return P2PState(
         connectionStatus: data.dec(_f$connectionStatus),
-        data: data.dec(_f$data),
-        roomId: data.dec(_f$roomId),
-        receivedMessages: data.dec(_f$receivedMessages),
         localStream: data.dec(_f$localStream),
-        remoteStream: data.dec(_f$remoteStream),
-        cameraType: data.dec(_f$cameraType));
+        remoteStream: data.dec(_f$remoteStream));
   }
 
   @override
@@ -175,16 +155,10 @@ extension P2PStateValueCopy<$R, $Out> on ObjectCopyWith<$R, P2PState, $Out> {
 
 abstract class P2PStateCopyWith<$R, $In extends P2PState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
-      get receivedMessages;
   $R call(
       {ConnectionStatus? connectionStatus,
-      String? data,
-      String? roomId,
-      List<String>? receivedMessages,
       MediaStream? localStream,
-      MediaStream? remoteStream,
-      CameraType? cameraType});
+      MediaStream? remoteStream});
   P2PStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -197,40 +171,21 @@ class _P2PStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<P2PState> $mapper =
       P2PStateMapper.ensureInitialized();
   @override
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
-      get receivedMessages => ListCopyWith(
-          $value.receivedMessages,
-          (v, t) => ObjectCopyWith(v, $identity, t),
-          (v) => call(receivedMessages: v));
-  @override
   $R call(
           {ConnectionStatus? connectionStatus,
-          String? data,
-          String? roomId,
-          List<String>? receivedMessages,
           Object? localStream = $none,
-          Object? remoteStream = $none,
-          CameraType? cameraType}) =>
+          Object? remoteStream = $none}) =>
       $apply(FieldCopyWithData({
         if (connectionStatus != null) #connectionStatus: connectionStatus,
-        if (data != null) #data: data,
-        if (roomId != null) #roomId: roomId,
-        if (receivedMessages != null) #receivedMessages: receivedMessages,
         if (localStream != $none) #localStream: localStream,
-        if (remoteStream != $none) #remoteStream: remoteStream,
-        if (cameraType != null) #cameraType: cameraType
+        if (remoteStream != $none) #remoteStream: remoteStream
       }));
   @override
   P2PState $make(CopyWithData data) => P2PState(
       connectionStatus:
           data.get(#connectionStatus, or: $value.connectionStatus),
-      data: data.get(#data, or: $value.data),
-      roomId: data.get(#roomId, or: $value.roomId),
-      receivedMessages:
-          data.get(#receivedMessages, or: $value.receivedMessages),
       localStream: data.get(#localStream, or: $value.localStream),
-      remoteStream: data.get(#remoteStream, or: $value.remoteStream),
-      cameraType: data.get(#cameraType, or: $value.cameraType));
+      remoteStream: data.get(#remoteStream, or: $value.remoteStream));
 
   @override
   P2PStateCopyWith<$R2, P2PState, $Out2> $chain<$R2, $Out2>(

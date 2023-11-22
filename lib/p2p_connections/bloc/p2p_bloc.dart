@@ -184,14 +184,6 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     Emitter<P2PState> emit,
   ) async {
     await _webRtcService.toggleCamera();
-
-    emit(
-      state.copyWith(
-        cameraType: state.cameraType == CameraType.front
-            ? CameraType.rear
-            : CameraType.front,
-      ),
-    );
   }
 
   Future<void> _onCloseConnection(
