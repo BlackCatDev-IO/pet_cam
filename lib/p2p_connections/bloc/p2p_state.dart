@@ -1,19 +1,5 @@
 part of 'p2p_bloc.dart';
 
-enum SocketEvents {
-  connect('connect'),
-  send('send'),
-  roomMessage('room_message'),
-  roomJoined('room_joined'),
-  offer('offer'),
-  sendWebRtcOffer('send_webrtc_offer'),
-  joinRoom('join_room');
-
-  const SocketEvents(this.name);
-
-  final String name;
-}
-
 @MappableEnum()
 enum ConnectionStatus {
   connecting,
