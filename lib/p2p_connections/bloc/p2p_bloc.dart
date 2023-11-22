@@ -2,20 +2,20 @@ import 'dart:async';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:pet_cam/sockets/socket_repository.dart';
+import 'package:pet_cam/p2p_connections/socket_repository.dart';
 import 'package:pet_cam/web_rtc/web_rtc_service.dart';
 
-part 'socket_event.dart';
-part 'socket_state.dart';
-part 'socket_bloc.mapper.dart';
+part 'p2p_event.dart';
+part 'p2p_state.dart';
+part 'p2p_bloc.mapper.dart';
 
-class SocketBloc extends Bloc<SocketEvent, SocketState> {
-  SocketBloc({
+class P2PBloc extends Bloc<P2PEvent, P2PState> {
+  P2PBloc({
     required SocketRepository socketRepository,
     required WebRtcService webRtcService,
   })  : _socketRepository = socketRepository,
         _webRtcService = webRtcService,
-        super(const SocketState()) {
+        super(const P2PState()) {
     on<SocketEmitEvent>(_onSocketEmitEvent);
     on<SocketCreateRoom>(_onSocketCreateRoom);
     on<SocketInitEventListener>(_onSocketInitEventListener);
@@ -34,7 +34,7 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
 
   Future<void> _onSocketInitEventListener(
     SocketInitEventListener event,
-    Emitter<SocketState> emit,
+    Emitter<P2PState> emit,
   ) async {
     await emit.onEach(
       _socketRepository.eventStream,
@@ -119,14 +119,16 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
 
   Future<void> _onSocketCreateRoom(
     SocketCreateRoom event,
-    Emitter<SocketState> emit,
+    Emitter<P2PState> emit,
   ) async {
     await _webRtcService.openUserMedia();
     _offer = await _webRtcService.createRoom();
+
     _socketRepository.emitSocketEvent(
       SocketEvents.joinRoom.name,
       {'room': room, 'offer': _offer!.toMap()},
     );
+
     await emit.forEach(
       _webRtcService.remoteMediaStream,
       onData: (mediaStream) {
@@ -139,7 +141,7 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
 
   Future<void> _onSocketJoinRoom(
     SocketJoinRoom event,
-    Emitter<SocketState> emit,
+    Emitter<P2PState> emit,
   ) async {
     emit(state.copyWith(connectionStatus: ConnectionStatus.connecting));
 
@@ -163,7 +165,7 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
 
   Future<void> _onSocketEmitEvent(
     SocketEmitEvent event,
-    Emitter<SocketState> emit,
+    Emitter<P2PState> emit,
   ) async {
     _socketRepository.emitSocketEvent(
       event.eventName,
@@ -173,7 +175,7 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
 
   Future<void> _onToggleCamera(
     ToggleCamera event,
-    Emitter<SocketState> emit,
+    Emitter<P2PState> emit,
   ) async {
     await _webRtcService.toggleCamera();
 
@@ -188,7 +190,7 @@ class SocketBloc extends Bloc<SocketEvent, SocketState> {
 
   Future<void> _onSocketCloseConnection(
     SocketCloseConnection event,
-    Emitter<SocketState> emit,
+    Emitter<P2PState> emit,
   ) async {
     emit(state.copyWith(connectionStatus: ConnectionStatus.disconnecting));
 

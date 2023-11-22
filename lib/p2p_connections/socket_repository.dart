@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:pet_cam/env.dart';
-import 'package:pet_cam/sockets/bloc/socket_bloc.dart';
+import 'package:pet_cam/p2p_connections/bloc/p2p_bloc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket;
 
 const room = 'pet_cam_room';
@@ -42,7 +42,6 @@ class SocketRepository {
       )
       ..onAny(
         (event, data) {
-          _logSocketRepository('onAny 1 $event $data');
           if (expectedSocketEvents.contains(event) && data != null) {
             final map = data as Map<String, dynamic>;
             map['event'] = event;

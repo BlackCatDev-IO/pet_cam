@@ -1,4 +1,4 @@
-part of 'socket_bloc.dart';
+part of 'p2p_bloc.dart';
 
 enum SocketEvents {
   connect('connect'),
@@ -37,8 +37,8 @@ extension ConnectionStatusX on ConnectionStatus {
 }
 
 @MappableClass()
-class SocketState with SocketStateMappable {
-  const SocketState({
+class P2PState with P2PStateMappable {
+  const P2PState({
     this.connectionStatus = ConnectionStatus.disconnected,
     this.data = '',
     this.roomId = 'pet_cam_room',

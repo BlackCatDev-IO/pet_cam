@@ -4,7 +4,7 @@
 // ignore_for_file: unused_element, unnecessary_cast
 // ignore_for_file: strict_raw_type, inference_failure_on_untyped_parameter
 
-part of 'socket_bloc.dart';
+part of 'p2p_bloc.dart';
 
 class ConnectionStatusMapper extends EnumMapper<ConnectionStatus> {
   ConnectionStatusMapper._();
@@ -64,47 +64,46 @@ extension ConnectionStatusMapperExtension on ConnectionStatus {
   }
 }
 
-class SocketStateMapper extends ClassMapperBase<SocketState> {
-  SocketStateMapper._();
+class P2PStateMapper extends ClassMapperBase<P2PState> {
+  P2PStateMapper._();
 
-  static SocketStateMapper? _instance;
-  static SocketStateMapper ensureInitialized() {
+  static P2PStateMapper? _instance;
+  static P2PStateMapper ensureInitialized() {
     if (_instance == null) {
-      MapperContainer.globals.use(_instance = SocketStateMapper._());
+      MapperContainer.globals.use(_instance = P2PStateMapper._());
       ConnectionStatusMapper.ensureInitialized();
     }
     return _instance!;
   }
 
   @override
-  final String id = 'SocketState';
+  final String id = 'P2PState';
 
-  static ConnectionStatus _$connectionStatus(SocketState v) =>
-      v.connectionStatus;
-  static const Field<SocketState, ConnectionStatus> _f$connectionStatus = Field(
+  static ConnectionStatus _$connectionStatus(P2PState v) => v.connectionStatus;
+  static const Field<P2PState, ConnectionStatus> _f$connectionStatus = Field(
       'connectionStatus', _$connectionStatus,
       opt: true, def: ConnectionStatus.disconnected);
-  static String _$data(SocketState v) => v.data;
-  static const Field<SocketState, String> _f$data =
+  static String _$data(P2PState v) => v.data;
+  static const Field<P2PState, String> _f$data =
       Field('data', _$data, opt: true, def: '');
-  static String _$roomId(SocketState v) => v.roomId;
-  static const Field<SocketState, String> _f$roomId =
+  static String _$roomId(P2PState v) => v.roomId;
+  static const Field<P2PState, String> _f$roomId =
       Field('roomId', _$roomId, opt: true, def: 'pet_cam_room');
-  static List<String> _$receivedMessages(SocketState v) => v.receivedMessages;
-  static const Field<SocketState, List<String>> _f$receivedMessages =
+  static List<String> _$receivedMessages(P2PState v) => v.receivedMessages;
+  static const Field<P2PState, List<String>> _f$receivedMessages =
       Field('receivedMessages', _$receivedMessages, opt: true, def: const []);
-  static MediaStream? _$localStream(SocketState v) => v.localStream;
-  static const Field<SocketState, MediaStream> _f$localStream =
+  static MediaStream? _$localStream(P2PState v) => v.localStream;
+  static const Field<P2PState, MediaStream> _f$localStream =
       Field('localStream', _$localStream, opt: true);
-  static MediaStream? _$remoteStream(SocketState v) => v.remoteStream;
-  static const Field<SocketState, MediaStream> _f$remoteStream =
+  static MediaStream? _$remoteStream(P2PState v) => v.remoteStream;
+  static const Field<P2PState, MediaStream> _f$remoteStream =
       Field('remoteStream', _$remoteStream, opt: true);
-  static CameraType _$cameraType(SocketState v) => v.cameraType;
-  static const Field<SocketState, CameraType> _f$cameraType =
+  static CameraType _$cameraType(P2PState v) => v.cameraType;
+  static const Field<P2PState, CameraType> _f$cameraType =
       Field('cameraType', _$cameraType, opt: true, def: CameraType.rear);
 
   @override
-  final Map<Symbol, Field<SocketState, dynamic>> fields = const {
+  final Map<Symbol, Field<P2PState, dynamic>> fields = const {
     #connectionStatus: _f$connectionStatus,
     #data: _f$data,
     #roomId: _f$roomId,
@@ -114,8 +113,8 @@ class SocketStateMapper extends ClassMapperBase<SocketState> {
     #cameraType: _f$cameraType,
   };
 
-  static SocketState _instantiate(DecodingData data) {
-    return SocketState(
+  static P2PState _instantiate(DecodingData data) {
+    return P2PState(
         connectionStatus: data.dec(_f$connectionStatus),
         data: data.dec(_f$data),
         roomId: data.dec(_f$roomId),
@@ -128,55 +127,53 @@ class SocketStateMapper extends ClassMapperBase<SocketState> {
   @override
   final Function instantiate = _instantiate;
 
-  static SocketState fromMap(Map<String, dynamic> map) {
-    return ensureInitialized().decodeMap<SocketState>(map);
+  static P2PState fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<P2PState>(map);
   }
 
-  static SocketState fromJson(String json) {
-    return ensureInitialized().decodeJson<SocketState>(json);
+  static P2PState fromJson(String json) {
+    return ensureInitialized().decodeJson<P2PState>(json);
   }
 }
 
-mixin SocketStateMappable {
+mixin P2PStateMappable {
   String toJson() {
-    return SocketStateMapper.ensureInitialized()
-        .encodeJson<SocketState>(this as SocketState);
+    return P2PStateMapper.ensureInitialized()
+        .encodeJson<P2PState>(this as P2PState);
   }
 
   Map<String, dynamic> toMap() {
-    return SocketStateMapper.ensureInitialized()
-        .encodeMap<SocketState>(this as SocketState);
+    return P2PStateMapper.ensureInitialized()
+        .encodeMap<P2PState>(this as P2PState);
   }
 
-  SocketStateCopyWith<SocketState, SocketState, SocketState> get copyWith =>
-      _SocketStateCopyWithImpl(this as SocketState, $identity, $identity);
+  P2PStateCopyWith<P2PState, P2PState, P2PState> get copyWith =>
+      _P2PStateCopyWithImpl(this as P2PState, $identity, $identity);
   @override
   String toString() {
-    return SocketStateMapper.ensureInitialized()
-        .stringifyValue(this as SocketState);
+    return P2PStateMapper.ensureInitialized().stringifyValue(this as P2PState);
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (runtimeType == other.runtimeType &&
-            SocketStateMapper.ensureInitialized()
-                .isValueEqual(this as SocketState, other));
+            P2PStateMapper.ensureInitialized()
+                .isValueEqual(this as P2PState, other));
   }
 
   @override
   int get hashCode {
-    return SocketStateMapper.ensureInitialized().hashValue(this as SocketState);
+    return P2PStateMapper.ensureInitialized().hashValue(this as P2PState);
   }
 }
 
-extension SocketStateValueCopy<$R, $Out>
-    on ObjectCopyWith<$R, SocketState, $Out> {
-  SocketStateCopyWith<$R, SocketState, $Out> get $asSocketState =>
-      $base.as((v, t, t2) => _SocketStateCopyWithImpl(v, t, t2));
+extension P2PStateValueCopy<$R, $Out> on ObjectCopyWith<$R, P2PState, $Out> {
+  P2PStateCopyWith<$R, P2PState, $Out> get $asP2PState =>
+      $base.as((v, t, t2) => _P2PStateCopyWithImpl(v, t, t2));
 }
 
-abstract class SocketStateCopyWith<$R, $In extends SocketState, $Out>
+abstract class P2PStateCopyWith<$R, $In extends P2PState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
       get receivedMessages;
@@ -188,17 +185,17 @@ abstract class SocketStateCopyWith<$R, $In extends SocketState, $Out>
       MediaStream? localStream,
       MediaStream? remoteStream,
       CameraType? cameraType});
-  SocketStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+  P2PStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
-class _SocketStateCopyWithImpl<$R, $Out>
-    extends ClassCopyWithBase<$R, SocketState, $Out>
-    implements SocketStateCopyWith<$R, SocketState, $Out> {
-  _SocketStateCopyWithImpl(super.value, super.then, super.then2);
+class _P2PStateCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, P2PState, $Out>
+    implements P2PStateCopyWith<$R, P2PState, $Out> {
+  _P2PStateCopyWithImpl(super.value, super.then, super.then2);
 
   @override
-  late final ClassMapperBase<SocketState> $mapper =
-      SocketStateMapper.ensureInitialized();
+  late final ClassMapperBase<P2PState> $mapper =
+      P2PStateMapper.ensureInitialized();
   @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
       get receivedMessages => ListCopyWith(
@@ -224,7 +221,7 @@ class _SocketStateCopyWithImpl<$R, $Out>
         if (cameraType != null) #cameraType: cameraType
       }));
   @override
-  SocketState $make(CopyWithData data) => SocketState(
+  P2PState $make(CopyWithData data) => P2PState(
       connectionStatus:
           data.get(#connectionStatus, or: $value.connectionStatus),
       data: data.get(#data, or: $value.data),
@@ -236,7 +233,7 @@ class _SocketStateCopyWithImpl<$R, $Out>
       cameraType: data.get(#cameraType, or: $value.cameraType));
 
   @override
-  SocketStateCopyWith<$R2, SocketState, $Out2> $chain<$R2, $Out2>(
+  P2PStateCopyWith<$R2, P2PState, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _SocketStateCopyWithImpl($value, $cast, t);
+      _P2PStateCopyWithImpl($value, $cast, t);
 }
