@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pet_cam/l10n/l10n.dart';
-import 'package:pet_cam/sockets/bloc/socket_bloc.dart';
-import 'package:pet_cam/sockets/socket_repository.dart';
-import 'package:pet_cam/sockets/view/socket_page.dart';
+import 'package:pet_cam/p2p_connections/bloc/p2p_bloc.dart';
+import 'package:pet_cam/p2p_connections/socket_repository.dart';
+import 'package:pet_cam/p2p_connections/view/home_page.dart';
+
 import 'package:pet_cam/web_rtc/web_rtc_service.dart';
 
 class App extends StatelessWidget {
@@ -11,16 +12,23 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<SocketBloc>(
-      create: (context) => SocketBloc(
+    return BlocProvider<P2PBloc>(
+      create: (context) => P2PBloc(
         socketRepository: SocketRepository(),
         webRtcService: WebRtcService(),
-      )..add(SocketInitEventListener()),
+      )..add(InitSocketEventListener()),
       lazy: false,
-      child: const MaterialApp(
+      child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: SocketPage(),
+        theme: ThemeData(
+          scaffoldBackgroundColor: const Color.fromARGB(255, 33, 33, 33),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color.fromARGB(255, 33, 33, 33),
+            foregroundColor: Colors.white,
+          ),
+        ),
+        home: const HomePage(),
       ),
     );
   }
