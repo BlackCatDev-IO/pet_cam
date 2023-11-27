@@ -5,6 +5,7 @@ import 'package:pet_cam/p2p_connections/bloc/p2p_bloc.dart';
 import 'package:pet_cam/p2p_connections/socket_repository.dart';
 import 'package:pet_cam/p2p_connections/view/home_page.dart';
 import 'package:pet_cam/settings/bloc/settings_bloc.dart';
+import 'package:pet_cam/theme/app_theme.dart';
 
 import 'package:pet_cam/web_rtc/web_rtc_service.dart';
 
@@ -30,13 +31,7 @@ class App extends StatelessWidget {
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        theme: ThemeData(
-          scaffoldBackgroundColor: const Color.fromARGB(255, 33, 33, 33),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color.fromARGB(255, 33, 33, 33),
-            foregroundColor: Colors.white,
-          ),
-        ),
+        theme: AppTheme.theme,
         home: const HomePage(),
       ),
     );
