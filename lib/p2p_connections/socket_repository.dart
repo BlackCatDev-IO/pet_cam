@@ -6,16 +6,15 @@ import 'package:pet_cam/p2p_connections/socket_message.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket;
 
 const room = 'pet_cam_room';
-const localHost = 'http://192.168.1.120:8000/';
+const localHost = 'http://192.168.1.117:8000/';
 
 enum SocketEvents {
-  connect('connect'),
   send('send'),
   roomMessage('room_message'),
   roomJoined('room_joined'),
   offer('offer'),
   sendWebRtcOffer('send_webrtc_offer'),
-  initConnectionFromClient('init_connection_from_client'),
+  disconnect('disconnect_request'),
   joinRoom('join_room');
 
   const SocketEvents(this.name);
