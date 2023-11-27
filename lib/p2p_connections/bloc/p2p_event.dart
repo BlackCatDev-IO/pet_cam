@@ -1,6 +1,6 @@
 part of 'p2p_bloc.dart';
 
-abstract class P2PEvent {}
+sealed class P2PEvent {}
 
 class EmitSocketEvent extends P2PEvent {
   EmitSocketEvent({

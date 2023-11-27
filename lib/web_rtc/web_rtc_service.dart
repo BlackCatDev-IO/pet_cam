@@ -36,6 +36,8 @@ class WebRtcService {
     ],
   };
 
+  bool get isPeerConnectionInitialized => _peerConnection != null;
+
   Future<RTCSessionDescription> createAndSendRtcOffer() async {
     await _openUserMedia();
     _logWebRtcRepository(
@@ -80,11 +82,11 @@ class WebRtcService {
   }) async {
     final offer =
         (data as Map<String, dynamic>)['offer'] as Map<String, dynamic>;
+
     final iceList = data['ice'] as List?;
 
-    _logWebRtcRepository(
-      '_answerOffer: Received offer: ice $iceList',
-    );
+    _logWebRtcRepository('_answerOffer: Received offer: ice $iceList');
+
     _peerConnection = await createPeerConnection(_configuration);
 
     _registerPeerConnectionListeners();
@@ -96,7 +98,6 @@ class WebRtcService {
     });
 
     _peerConnection!.onIceCandidate = iceCandidateCallback;
-
     _peerConnection?.onTrack = (RTCTrackEvent event) {
       _logWebRtcRepository('Got remote track: ${event.streams[0]}');
       event.streams[0].getTracks().forEach((track) {
@@ -104,11 +105,16 @@ class WebRtcService {
         _remoteMediaStreamController.add(event.streams[0]);
       });
     };
+
     await _peerConnection?.setRemoteDescription(
-      RTCSessionDescription(offer['sdp'] as String, offer['type'] as String),
+      RTCSessionDescription(
+        offer['sdp'] as String,
+        offer['type'] as String,
+      ),
     );
 
     final answer = await _peerConnection!.createAnswer();
+
     _logWebRtcRepository('Created Answer $answer');
 
     await _peerConnection!.setLocalDescription(answer);
@@ -125,7 +131,10 @@ class WebRtcService {
   }
 
   void addIceCandidate(RTCIceCandidate iceCandidate) {
-    _peerConnection?.addCandidate(iceCandidate);
+    if (_peerConnection?.connectionState !=
+        RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+      _peerConnection?.addCandidate(iceCandidate);
+    }
   }
 
   void setRemoteDescription(RTCSessionDescription offerResponse) {
@@ -137,8 +146,7 @@ class WebRtcService {
       'audio': false,
       'video': {
         'mandatory': {
-          'minWidth':
-              '500', // Provide your own width, height and frame rate here
+          'minWidth': '500',
           'minHeight': '500',
           'minFrameRate': '30',
         },
@@ -169,43 +177,48 @@ class WebRtcService {
     final videoTrack = localStream!
         .getVideoTracks()
         .firstWhere((track) => track.kind == 'video');
+
     await Helper.switchCamera(videoTrack);
   }
 
   void _registerPeerConnectionListeners() {
     _peerConnection?.onIceGatheringState = (RTCIceGatheringState state) {
-      _logWebRtcRepository('ICE gathering state changed: $state');
+      _logWebRtcRepository(
+        'PeerConnection ICE gathering state changed: $state',
+      );
     };
 
     _peerConnection?.onConnectionState = (RTCPeerConnectionState state) {
-      _logWebRtcRepository('Connection state change: $state');
+      _logWebRtcRepository('PeerConnection Connection state change: $state');
     };
 
     _peerConnection?.onSignalingState = (RTCSignalingState state) {
-      _logWebRtcRepository('Signaling state change: $state');
+      _logWebRtcRepository('PeerConnection Signaling state change: $state');
     };
 
     _peerConnection?.onAddStream = (MediaStream stream) {
-      _logWebRtcRepository('onAddStream $stream');
+      _logWebRtcRepository('PeerConnection onAddStream $stream');
       _remoteMediaStreamController.add(stream);
     };
   }
 
   Future<void> closeConnection({
-    required RTCVideoRenderer localVideo,
+    RTCVideoRenderer? localVideo,
     required MediaStream? remoteStream,
   }) async {
-    if (localVideo.srcObject != null) {
-      final tracks = localVideo.srcObject!.getTracks();
-      for (final track in tracks) {
-        await track.stop();
-      }
+    if (localVideo?.srcObject != null) {
+      localVideo!.srcObject!.getTracks().forEach((track) => track.stop());
+      localVideo.srcObject = null;
     }
 
     if (remoteStream != null) {
       remoteStream.getTracks().forEach((track) => track.stop());
     }
-    if (_peerConnection != null) await _peerConnection!.close();
+
+    if (_peerConnection != null) {
+      await _peerConnection!.close();
+      _peerConnection = null;
+    }
 
     await localStream?.dispose();
     await remoteStream?.dispose();

@@ -19,7 +19,6 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
         _webRtcService = webRtcService,
         super(const P2PState()) {
     on<InitSocketEventListener>(_onInitSocketEventListener);
-
     on<EmitSocketEvent>(_onEmitSocketEvent);
     on<CreateAndSendRtcOffer>(_onCreateAndSendRtcOffer);
     on<ConnectToRemoteCamera>(_onConnectToRemoteCamera);
@@ -41,102 +40,44 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
   ) async {
     await emit.onEach(
       _socketRepository.eventStream,
-      onData: (eventData) {
+      onData: (eventData) async {
         final eventName = eventData['event'] as String;
+        _logP2PBloc('event name: $eventName');
 
-        if (eventName == SocketEvents.roomJoined.name) {
-          if (_offer != null) {
-            _socketRepository.emitSocketEvent(
-              SocketMessage(
-                event: SocketEvents.sendWebRtcOffer.name,
-                room: room,
-                outputEvent: 'offer',
-                data: {
-                  'room': room,
-                  'offer': _offer!.toMap(),
-                  'ice': _iceCandidateList,
-                },
-              ),
-            );
-
-            _webRtcService.addMediaTracksToPeer();
+        if (eventName == SocketEvents.roomJoined.name && _offer != null) {
+          if (!_webRtcService.isPeerConnectionInitialized) {
+            _offer = await _webRtcService.createAndSendRtcOffer();
           }
+          _socketRepository.emitSocketEvent(
+            SocketMessage(
+              event: SocketEvents.sendWebRtcOffer.name,
+              room: room,
+              outputEvent: 'offer',
+              data: {
+                'room': room,
+                'offer': _offer!.toMap(),
+                'ice': _iceCandidateList,
+              },
+            ),
+          );
+
+          await _webRtcService.addMediaTracksToPeer();
         }
 
         if (eventName == SocketEvents.offer.name) {
-          _answerRtcOffer(eventData: eventData);
+          await _answerRtcOffer(eventData);
         }
 
         if (eventName == SocketEvents.roomMessage.name) {
           _handleRemoteRoomMessage(eventData);
         }
+
+        if (eventName == SocketEvents.disconnect.name) {
+          await _webRtcService.closeConnection(
+            remoteStream: state.remoteStream,
+          );
+        }
       },
-    );
-  }
-
-  void _handleRemoteRoomMessage(dynamic data) {
-    final map = data as Map<String, dynamic>;
-    _logP2PBloc('room message $map');
-
-    final iceCandidates = map['ice'] as Map<String, dynamic>?;
-    final answer = map['answer'] as Map<String, dynamic>?;
-    final init = map['init'] as Map<String, dynamic>?;
-
-    if (iceCandidates != null) {
-      final iceCandidate = RTCIceCandidate(
-        iceCandidates['candidate'] as String,
-        iceCandidates['sdpMid'] as String,
-        iceCandidates['sdpMLineIndex'] as int,
-      );
-
-      _webRtcService.addIceCandidate(iceCandidate);
-    }
-
-    if (answer != null) {
-      final offerResponse = RTCSessionDescription(
-        answer['sdp'] as String,
-        answer['type'] as String,
-      );
-
-      _webRtcService.setRemoteDescription(offerResponse);
-    }
-
-    if (init != null) {}
-  }
-
-  Future<void> _answerRtcOffer({
-    required Map<String, dynamic> eventData,
-  }) async {
-    dynamic iceCandidateCallback(RTCIceCandidate? candidate) {
-      if (candidate == null) {
-        return;
-      }
-
-      _socketRepository.emitSocketEvent(
-        SocketMessage(
-          event: SocketEvents.roomMessage.name,
-          room: room,
-          outputEvent: SocketEvents.roomMessage.name,
-          data: {
-            'room': room,
-            'ice': candidate.toMap(),
-          },
-        ),
-      );
-    }
-
-    final offer = await _webRtcService.answerOffer(
-      data: eventData,
-      iceCandidateCallback: iceCandidateCallback,
-    );
-
-    _socketRepository.emitSocketEvent(
-      SocketMessage(
-        event: SocketEvents.roomMessage.name,
-        room: room,
-        outputEvent: SocketEvents.roomMessage.name,
-        data: offer,
-      ),
     );
   }
 
@@ -171,16 +112,12 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
       ),
     );
 
-    await emit.onEach(
+    await emit.forEach(
       _webRtcService.remoteMediaStream,
-      onData: (mediaStream) {
-        emit(
-          state.copyWith(
-            connectionStatus: ConnectionStatus.connected,
-            remoteStream: mediaStream,
-          ),
-        );
-      },
+      onData: (mediaStream) => state.copyWith(
+        connectionStatus: ConnectionStatus.connected,
+        remoteStream: mediaStream,
+      ),
     );
   }
 
@@ -216,7 +153,82 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
       remoteStream: state.remoteStream,
     );
 
+    _socketRepository.emitSocketEvent(
+      SocketMessage(
+        event: SocketEvents.roomMessage.name,
+        room: room,
+        outputEvent: SocketEvents.disconnect.name,
+        data: {},
+      ),
+    );
+
     emit(state.copyWith(connectionStatus: ConnectionStatus.disconnected));
+  }
+
+  void _handleRemoteRoomMessage(dynamic data) {
+    final map = data as Map<String, dynamic>;
+    _logP2PBloc('room message $map');
+
+    final iceCandidates = map['ice'] as Map<String, dynamic>?;
+    final answer = map['answer'] as Map<String, dynamic>?;
+    final init = map['init'] as Map<String, dynamic>?;
+
+    if (iceCandidates != null) {
+      final iceCandidate = RTCIceCandidate(
+        iceCandidates['candidate'] as String,
+        iceCandidates['sdpMid'] as String,
+        iceCandidates['sdpMLineIndex'] as int,
+      );
+
+      _webRtcService.addIceCandidate(iceCandidate);
+    }
+
+    if (answer != null) {
+      final offerResponse = RTCSessionDescription(
+        answer['sdp'] as String,
+        answer['type'] as String,
+      );
+
+      _webRtcService.setRemoteDescription(offerResponse);
+    }
+
+    if (init != null) {}
+  }
+
+  Future<void> _answerRtcOffer(
+    Map<String, dynamic> eventData,
+  ) async {
+    dynamic iceCandidateCallback(RTCIceCandidate? candidate) {
+      if (candidate == null) {
+        return;
+      }
+
+      _socketRepository.emitSocketEvent(
+        SocketMessage(
+          event: SocketEvents.roomMessage.name,
+          room: room,
+          outputEvent: SocketEvents.roomMessage.name,
+          data: {
+            'room': room,
+            'ice': candidate.toMap(),
+          },
+        ),
+      );
+    }
+
+    final offer = await _webRtcService.answerOffer(
+      data: eventData,
+      iceCandidateCallback: iceCandidateCallback,
+    );
+
+    _socketRepository.emitSocketEvent(
+      SocketMessage(
+        event: SocketEvents.roomMessage.name,
+        room: room,
+        outputEvent: SocketEvents.roomMessage.name,
+        data: offer,
+      ),
+    );
   }
 
   void _initIceListener() {
