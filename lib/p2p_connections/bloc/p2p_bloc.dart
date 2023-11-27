@@ -30,7 +30,6 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
 
   final SocketRepository _socketRepository;
   final WebRtcService _webRtcService;
-  RTCSessionDescription? _offer;
 
   final _iceCandidateList = <Map<String, dynamic>>[];
 
@@ -44,9 +43,10 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
         final eventName = eventData['event'] as String;
         _logP2PBloc('event name: $eventName');
 
-        if (eventName == SocketEvents.roomJoined.name && _offer != null) {
+        if (eventName == SocketEvents.roomJoined.name &&
+            _webRtcService.offer != null) {
           if (!_webRtcService.isPeerConnectionInitialized) {
-            _offer = await _webRtcService.createAndSendRtcOffer();
+            await _webRtcService.createAndSendRtcOffer();
           }
           _socketRepository.emitSocketEvent(
             SocketMessage(
@@ -55,7 +55,7 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
               outputEvent: 'offer',
               data: {
                 'room': room,
-                'offer': _offer!.toMap(),
+                'offer': _webRtcService.offer!.toMap(),
                 'ice': _iceCandidateList,
               },
             ),
@@ -85,14 +85,14 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
     CreateAndSendRtcOffer event,
     Emitter<P2PState> emit,
   ) async {
-    _offer = await _webRtcService.createAndSendRtcOffer();
+    _webRtcService.offer = await _webRtcService.createAndSendRtcOffer();
 
     _socketRepository.emitSocketEvent(
       SocketMessage(
         event: SocketEvents.joinRoom.name,
         room: room,
         outputEvent: SocketEvents.roomJoined.name,
-        data: {'offer': _offer!.toMap()},
+        data: {'offer': _webRtcService.offer!.toMap()},
       ),
     );
   }
