@@ -8,9 +8,9 @@ enum CameraType {
 
 @MappableEnum()
 enum DeviceRole {
-  notSet,
-  camera,
   viewer,
+  camera,
+  notSet,
 }
 
 extension DeviceRoleX on DeviceRole {

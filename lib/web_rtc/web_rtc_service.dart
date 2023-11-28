@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:pet_cam/analytics/analytics_service.dart';
 
 const _room = 'pet_cam_room';
 const localHost = 'http://192.168.1.113:8000/';
@@ -35,6 +37,8 @@ class WebRtcService {
       }
     ],
   };
+
+  final _analytics = GetIt.I<AnalyticsService>();
 
   bool get isPeerConnectionInitialized => _peerConnection != null;
 
@@ -189,10 +193,12 @@ class WebRtcService {
     };
 
     _peerConnection?.onConnectionState = (RTCPeerConnectionState state) {
+      _analytics.track('WebRTC Connection state change: $state');
       _logWebRtcRepository('PeerConnection Connection state change: $state');
     };
 
     _peerConnection?.onSignalingState = (RTCSignalingState state) {
+      _analytics.track('WebRTC Signaling state change: $state');
       _logWebRtcRepository('PeerConnection Signaling state change: $state');
     };
 
