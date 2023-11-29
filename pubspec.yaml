@@ -14,7 +14,7 @@ dependencies:
   flutter_bloc: ^8.1.2
   flutter_localizations:
     sdk: flutter
-  flutter_webrtc: ^0.9.46
+  flutter_webrtc: ^0.9.47
   get_it: ^7.6.4
   hydrated_bloc: ^9.1.2
   intl: ^0.18.1
