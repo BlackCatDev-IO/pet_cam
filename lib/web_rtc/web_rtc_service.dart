@@ -6,7 +6,6 @@ import 'package:get_it/get_it.dart';
 import 'package:pet_cam/analytics/analytics_service.dart';
 
 const _room = 'pet_cam_room';
-const localHost = 'http://192.168.1.113:8000/';
 
 typedef IceCandidateCallback = dynamic Function(RTCIceCandidate);
 
