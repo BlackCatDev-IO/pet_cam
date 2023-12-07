@@ -17,6 +17,7 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
   })  : _socketRepository = socketRepository,
         _webRtcService = webRtcService,
         super(const P2PState()) {
+    on<InitSignalStateListener>(_onInitSignalStateListener);
     on<CreateAndSendRtcOffer>(_onCreateAndSendRtcOffer);
     on<ConnectToRemoteCamera>(_onConnectToRemoteCamera);
     on<CloseConnection>(_onCloseConnection);
@@ -30,6 +31,30 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
   final WebRtcService _webRtcService;
 
   final _iceCandidateList = <Map<String, dynamic>>[];
+
+  Future<void> _onInitSignalStateListener(
+    InitSignalStateListener event,
+    Emitter<P2PState> emit,
+  ) async {
+    await emit.onEach(
+      _webRtcService.signalingState,
+      onData: (signalState) async {
+        final lostConnection = signalState ==
+                RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
+            signalState == RTCPeerConnectionState.RTCPeerConnectionStateFailed;
+
+        if (lostConnection && state.deviceRole.isCamera) {
+          await _webRtcService.closeConnection(
+            remoteStream: state.remoteStream,
+          );
+
+          add(CreateAndSendRtcOffer());
+
+          emit(state.copyWith(connectionStatus: ConnectionStatus.disconnected));
+        }
+      },
+    );
+  }
 
   Future<void> _onCreateAndSendRtcOffer(
     CreateAndSendRtcOffer event,
@@ -177,6 +202,7 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
   void _initStreamListeners() {
     _webRtcService.iceCandidateStream.listen(_iceCandidateList.add);
     _initSocketEventListener();
+    add(InitSignalStateListener());
   }
 
   void _initSocketEventListener() {

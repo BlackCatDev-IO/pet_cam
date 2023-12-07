@@ -26,6 +26,12 @@ class WebRtcService {
   Stream<Map<String, dynamic>> get iceCandidateStream =>
       _iceCandidateController.stream;
 
+  final StreamController<RTCPeerConnectionState> _signalingStateController =
+      StreamController<RTCPeerConnectionState>.broadcast();
+
+  Stream<RTCPeerConnectionState> get signalingState =>
+      _signalingStateController.stream;
+
   static const _configuration = {
     'iceServers': [
       {
@@ -43,7 +49,7 @@ class WebRtcService {
 
   Future<RTCSessionDescription> createAndSendRtcOffer() async {
     await _openUserMedia();
-    _logWebRtcRepository(
+    _logWebRtcService(
       'Create PeerConnection with configuration: $_configuration',
     );
 
@@ -63,17 +69,17 @@ class WebRtcService {
 
     offer = await _peerConnection!.createOffer();
     await _peerConnection!.setLocalDescription(offer!);
-    _logWebRtcRepository('Created offer: $offer');
+    _logWebRtcService('Created offer: $offer');
 
     return offer!;
   }
 
   Future<void> addMediaTracksToPeer() async {
     _peerConnection?.onTrack = (RTCTrackEvent event) {
-      _logWebRtcRepository('Got remote track: ${event.streams[0]}');
+      _logWebRtcService('Got remote track: ${event.streams[0]}');
 
       event.streams[0].getTracks().forEach((track) {
-        _logWebRtcRepository('Add a track to the remoteStream $track');
+        _logWebRtcService('Add a track to the remoteStream $track');
         _remoteMediaStreamController.add(event.streams[0]);
       });
     };
@@ -88,23 +94,23 @@ class WebRtcService {
 
     final iceList = data['ice'] as List?;
 
-    _logWebRtcRepository('_answerOffer: Received offer: ice $iceList');
+    _logWebRtcService('_answerOffer: Received offer: ice $iceList');
 
     _peerConnection = await createPeerConnection(_configuration);
 
     _registerPeerConnectionListeners();
 
     localStream?.getTracks().forEach((track) {
-      _logWebRtcRepository('Add a track to the localStream: $track');
+      _logWebRtcService('Add a track to the localStream: $track');
 
       _peerConnection?.addTrack(track, localStream!);
     });
 
     _peerConnection!.onIceCandidate = iceCandidateCallback;
     _peerConnection?.onTrack = (RTCTrackEvent event) {
-      _logWebRtcRepository('Got remote track: ${event.streams[0]}');
+      _logWebRtcService('Got remote track: ${event.streams[0]}');
       event.streams[0].getTracks().forEach((track) {
-        _logWebRtcRepository('Add a track to the remoteStream: $track');
+        _logWebRtcService('Add a track to the remoteStream: $track');
         _remoteMediaStreamController.add(event.streams[0]);
       });
     };
@@ -118,7 +124,7 @@ class WebRtcService {
 
     final answer = await _peerConnection!.createAnswer();
 
-    _logWebRtcRepository('Created Answer $answer');
+    _logWebRtcService('Created Answer $answer');
 
     await _peerConnection!.setLocalDescription(answer);
 
@@ -162,13 +168,13 @@ class WebRtcService {
       final stream =
           await navigator.mediaDevices.getUserMedia(mediaConstraints);
 
-      _logWebRtcRepository('Got stream $stream');
+      _logWebRtcService('Got stream $stream');
 
       localStream = stream;
 
       _remoteMediaStreamController.add(await createLocalMediaStream('key'));
     } catch (e) {
-      _logWebRtcRepository('openUserMedia ERROR: $e');
+      _logWebRtcService('openUserMedia ERROR: $e');
     }
   }
 
@@ -186,23 +192,24 @@ class WebRtcService {
 
   void _registerPeerConnectionListeners() {
     _peerConnection?.onIceGatheringState = (RTCIceGatheringState state) {
-      _logWebRtcRepository(
+      _logWebRtcService(
         'PeerConnection ICE gathering state changed: $state',
       );
     };
 
     _peerConnection?.onConnectionState = (RTCPeerConnectionState state) {
       _analytics.track('WebRTC Connection state change: $state');
-      _logWebRtcRepository('PeerConnection Connection state change: $state');
+      _logWebRtcService('PeerConnection Connection state change: $state');
+      _signalingStateController.add(state);
     };
 
     _peerConnection?.onSignalingState = (RTCSignalingState state) {
       _analytics.track('WebRTC Signaling state change: $state');
-      _logWebRtcRepository('PeerConnection Signaling state change: $state');
+      _logWebRtcService('PeerConnection Signaling state change: $state');
     };
 
     _peerConnection?.onAddStream = (MediaStream stream) {
-      _logWebRtcRepository('PeerConnection onAddStream $stream');
+      _logWebRtcService('PeerConnection onAddStream $stream');
       _remoteMediaStreamController.add(stream);
     };
   }
@@ -211,6 +218,7 @@ class WebRtcService {
     RTCVideoRenderer? localVideo,
     required MediaStream? remoteStream,
   }) async {
+    _logWebRtcService('Closing connection');
     if (localVideo?.srcObject != null) {
       localVideo!.srcObject!.getTracks().forEach((track) => track.stop());
       localVideo.srcObject = null;
@@ -229,7 +237,7 @@ class WebRtcService {
     await remoteStream?.dispose();
   }
 
-  void _logWebRtcRepository(String message) {
+  void _logWebRtcService(String message) {
     log(message, name: 'WebRTCService');
   }
 

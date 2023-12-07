@@ -2,17 +2,7 @@ part of 'p2p_bloc.dart';
 
 sealed class P2PEvent {}
 
-class EmitSocketEvent extends P2PEvent {
-  EmitSocketEvent({
-    required this.eventName,
-    required this.data,
-  });
-
-  final String eventName;
-  final Map<String, dynamic> data;
-}
-
-class InitSocketEventListener extends P2PEvent {}
+class InitSignalStateListener extends P2PEvent {}
 
 class CreateAndSendRtcOffer extends P2PEvent {}
 
