@@ -1,5 +1,5 @@
 name: pet_cam
-description: turns your device into a petcam or baby monitor
+description: Turns your device into a pet cam or baby monitor
 version: 1.0.0+1
 publish_to: none
 
@@ -9,12 +9,18 @@ environment:
 dependencies:
   bloc: ^8.1.1
   dart_mappable: ^4.0.1
+  equatable: ^2.0.5
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.2
   flutter_localizations:
     sdk: flutter
+  flutter_webrtc: ^0.9.46
+  get_it: ^7.6.4
+  hydrated_bloc: ^9.1.2
   intl: ^0.18.1
+  mixpanel_flutter: ^2.2.0
+  path_provider: ^2.1.1
   socket_io_client: ^2.0.3+1
 
 dev_dependencies:
@@ -23,8 +29,8 @@ dev_dependencies:
   dart_mappable_builder: ^4.0.1
   flutter_test:
     sdk: flutter
-  mocktail: ^0.3.0
-  very_good_analysis: ^3.1.0
+  mocktail: ^1.0.1
+  very_good_analysis: ^5.1.0
 
 flutter:
   uses-material-design: true

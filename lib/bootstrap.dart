@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get_it/get_it.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pet_cam/analytics/analytics_service.dart';
 
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();
@@ -20,6 +23,12 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
+Future<void> _initStorageDirectory() async {
+  final directory = await getApplicationDocumentsDirectory();
+  HydratedBloc.storage =
+      await HydratedStorage.build(storageDirectory: directory);
+}
+
 Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
@@ -28,7 +37,18 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   Bloc.observer = const AppBlocObserver();
 
   await runZonedGuarded(
-    () async => runApp(await builder()),
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+
+      final startupFutures = <Future<void>>[
+        GetIt.I.registerSingleton<AnalyticsService>(AnalyticsService()).init(),
+        _initStorageDirectory(),
+      ];
+
+      await Future.wait(startupFutures);
+
+      runApp(await builder());
+    },
     (error, stackTrace) => log(error.toString(), stackTrace: stackTrace),
   );
 }

@@ -24,10 +24,11 @@
       "args": ["--flavor", "staging", "--target", "lib/main_staging.dart"]
     },
     {
-      "name": "Launch production",
+      "name": "Prod - Release",
       "request": "launch",
       "type": "dart",
       "program": "lib/main_production.dart",
+      "flutterMode": "release",
       "args": ["--flavor", "production", "--target", "lib/main_production.dart"]
     }
   ]
