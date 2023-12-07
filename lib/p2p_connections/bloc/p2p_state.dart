@@ -16,40 +16,57 @@ enum ConnectionStatus {
   bool get isError => this == ConnectionStatus.error;
 }
 
+enum DeviceRole {
+  viewer,
+  camera,
+  notSet;
+
+  bool get isCamera => this == DeviceRole.camera;
+  bool get isViewer => this == DeviceRole.viewer;
+  bool get isNotSet => this == DeviceRole.notSet;
+}
+
 class P2PState extends Equatable {
   const P2PState({
     this.connectionStatus = ConnectionStatus.disconnected,
+    this.deviceRole = DeviceRole.notSet,
     this.localStream,
     this.remoteStream,
   });
 
   final ConnectionStatus connectionStatus;
+  final DeviceRole deviceRole;
   final MediaStream? localStream;
   final MediaStream? remoteStream;
 
   factory P2PState.fromMap(Map<String, dynamic> map) {
-    final statusString = map['connectionStatus'] as String;
-    final status = ConnectionStatus.values.firstWhere(
-      (element) => element.name == statusString,
-      orElse: () => ConnectionStatus.disconnected,
+    final deviceRoleString = map['deviceRole'] as String;
+
+    final deviceRole = DeviceRole.values.firstWhere(
+      (element) => element.name == deviceRoleString,
+      orElse: () => DeviceRole.notSet,
     );
+
     return P2PState(
-      connectionStatus: status,
+      deviceRole: deviceRole,
     );
   }
+
   Map<String, dynamic> toMap() {
     return {
-      'connectionStatus': connectionStatus.name,
+      'deviceRole': deviceRole.name,
     };
   }
 
   P2PState copyWith({
     ConnectionStatus? connectionStatus,
+    DeviceRole? deviceRole,
     MediaStream? localStream,
     MediaStream? remoteStream,
   }) {
     return P2PState(
       connectionStatus: connectionStatus ?? this.connectionStatus,
+      deviceRole: deviceRole ?? this.deviceRole,
       localStream: localStream ?? this.localStream,
       remoteStream: remoteStream ?? this.remoteStream,
     );
@@ -58,6 +75,7 @@ class P2PState extends Equatable {
   @override
   List<Object?> get props => [
         connectionStatus,
+        deviceRole,
         localStream,
         remoteStream,
       ];

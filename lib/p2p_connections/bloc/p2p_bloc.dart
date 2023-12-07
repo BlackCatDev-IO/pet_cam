@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'package:dart_mappable/dart_mappable.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -10,7 +9,6 @@ import 'package:pet_cam/web_rtc/web_rtc_service.dart';
 
 part 'p2p_event.dart';
 part 'p2p_state.dart';
-part 'p2p_bloc.mapper.dart';
 
 class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
   P2PBloc({
@@ -25,6 +23,7 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
     on<ConnectToRemoteCamera>(_onConnectToRemoteCamera);
     on<CloseConnection>(_onCloseConnection);
     on<ToggleCamera>(_onToggleCamera);
+    on<SetDeviceRole>(_onSetDeviceRole);
 
     _initIceListener();
   }
@@ -164,6 +163,13 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
     );
 
     emit(state.copyWith(connectionStatus: ConnectionStatus.disconnected));
+  }
+
+  FutureOr<void> _onSetDeviceRole(
+    SetDeviceRole event,
+    Emitter<P2PState> emit,
+  ) {
+    emit(state.copyWith(deviceRole: event.deviceRole));
   }
 
   void _handleRemoteRoomMessage(dynamic data) {

@@ -27,3 +27,9 @@ class CloseConnection extends P2PEvent {
 }
 
 class ToggleCamera extends P2PEvent {}
+
+class SetDeviceRole extends P2PEvent {
+  SetDeviceRole({required this.deviceRole});
+
+  final DeviceRole deviceRole;
+}

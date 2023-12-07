@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:pet_cam/p2p_connections/bloc/p2p_bloc.dart';
-import 'package:pet_cam/settings/bloc/settings_bloc.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,9 +20,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final settingsBloc = context.read<SettingsBloc>();
+    final p2pBloc = context.read<P2PBloc>();
 
-    return BlocBuilder<SettingsBloc, SettingsState>(
+    return BlocBuilder<P2PBloc, P2PState>(
       builder: (context, state) {
         if (state.deviceRole.isNotSet) {
           return const SetupScreen();
@@ -33,35 +32,28 @@ class _HomePageState extends State<HomePage> {
           appBar: AppBar(
             title: const Text('Pet Cam'),
           ),
-          body: widgets[settingsBloc.state.deviceRole.index],
-          bottomNavigationBar: BlocBuilder<SettingsBloc, SettingsState>(
-            builder: (context, state) {
-              log('state index ${state.deviceRole.index}');
-              return NavigationBar(
-                selectedIndex: state.deviceRole.index,
-                onDestinationSelected: (int index) {
-                  log('Nav index: $index');
+          body: widgets[p2pBloc.state.deviceRole.index],
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: state.deviceRole.index,
+            onDestinationSelected: (int index) {
+              log('Nav index: $index');
 
-                  if (index == 0) {
-                    settingsBloc
-                        .add(SetDeviceRole(deviceRole: DeviceRole.viewer));
-                  } else {
-                    settingsBloc
-                        .add(SetDeviceRole(deviceRole: DeviceRole.camera));
-                  }
-                },
-                destinations: const [
-                  NavigationDestination(
-                    icon: Icon(Icons.videocam),
-                    label: 'Viewer',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.camera_alt),
-                    label: 'Camera',
-                  ),
-                ],
-              );
+              if (index == 0) {
+                p2pBloc.add(SetDeviceRole(deviceRole: DeviceRole.viewer));
+              } else {
+                p2pBloc.add(SetDeviceRole(deviceRole: DeviceRole.camera));
+              }
             },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.videocam),
+                label: 'Viewer',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.camera_alt),
+                label: 'Camera',
+              ),
+            ],
           ),
         );
       },
@@ -99,9 +91,9 @@ class _CameraTabState extends State<CameraTab> {
   @override
   void initState() {
     super.initState();
-    final deviceRole = context.read<SettingsBloc>().state.deviceRole;
     final p2pBloc = context.read<P2PBloc>();
-    if (deviceRole.isCamera) {
+
+    if (p2pBloc.state.deviceRole.isCamera) {
       p2pBloc.add(CreateAndSendRtcOffer());
     }
   }
@@ -210,7 +202,7 @@ class SetupScreen extends StatelessWidget {
   const SetupScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    final settingsBloc = context.read<SettingsBloc>();
+    final p2pBloc = context.read<P2PBloc>();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Setup Screen'),
@@ -221,13 +213,13 @@ class SetupScreen extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () {
-                settingsBloc.add(SetDeviceRole(deviceRole: DeviceRole.viewer));
+                p2pBloc.add(SetDeviceRole(deviceRole: DeviceRole.viewer));
               },
               child: const Text('Set Viewer Role'),
             ),
             ElevatedButton(
               onPressed: () {
-                settingsBloc.add(SetDeviceRole(deviceRole: DeviceRole.camera));
+                p2pBloc.add(SetDeviceRole(deviceRole: DeviceRole.camera));
               },
               child: const Text('Set Camera Role'),
             ),

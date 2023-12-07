@@ -52,56 +52,6 @@ extension CameraTypeMapperExtension on CameraType {
   }
 }
 
-class DeviceRoleMapper extends EnumMapper<DeviceRole> {
-  DeviceRoleMapper._();
-
-  static DeviceRoleMapper? _instance;
-  static DeviceRoleMapper ensureInitialized() {
-    if (_instance == null) {
-      MapperContainer.globals.use(_instance = DeviceRoleMapper._());
-    }
-    return _instance!;
-  }
-
-  static DeviceRole fromValue(dynamic value) {
-    ensureInitialized();
-    return MapperContainer.globals.fromValue(value);
-  }
-
-  @override
-  DeviceRole decode(dynamic value) {
-    switch (value) {
-      case 'notSet':
-        return DeviceRole.notSet;
-      case 'camera':
-        return DeviceRole.camera;
-      case 'viewer':
-        return DeviceRole.viewer;
-      default:
-        throw MapperException.unknownEnumValue(value);
-    }
-  }
-
-  @override
-  dynamic encode(DeviceRole self) {
-    switch (self) {
-      case DeviceRole.notSet:
-        return 'notSet';
-      case DeviceRole.camera:
-        return 'camera';
-      case DeviceRole.viewer:
-        return 'viewer';
-    }
-  }
-}
-
-extension DeviceRoleMapperExtension on DeviceRole {
-  String toValue() {
-    DeviceRoleMapper.ensureInitialized();
-    return MapperContainer.globals.toValue<DeviceRole>(this) as String;
-  }
-}
-
 class SettingsStateMapper extends ClassMapperBase<SettingsState> {
   SettingsStateMapper._();
 
@@ -110,7 +60,6 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = SettingsStateMapper._());
       CameraTypeMapper.ensureInitialized();
-      DeviceRoleMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -121,20 +70,14 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
   static CameraType _$cameraType(SettingsState v) => v.cameraType;
   static const Field<SettingsState, CameraType> _f$cameraType =
       Field('cameraType', _$cameraType, opt: true, def: CameraType.front);
-  static DeviceRole _$deviceRole(SettingsState v) => v.deviceRole;
-  static const Field<SettingsState, DeviceRole> _f$deviceRole =
-      Field('deviceRole', _$deviceRole, opt: true, def: DeviceRole.notSet);
 
   @override
   final Map<Symbol, Field<SettingsState, dynamic>> fields = const {
     #cameraType: _f$cameraType,
-    #deviceRole: _f$deviceRole,
   };
 
   static SettingsState _instantiate(DecodingData data) {
-    return SettingsState(
-        cameraType: data.dec(_f$cameraType),
-        deviceRole: data.dec(_f$deviceRole));
+    return SettingsState(cameraType: data.dec(_f$cameraType));
   }
 
   @override
@@ -192,7 +135,7 @@ extension SettingsStateValueCopy<$R, $Out>
 
 abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({CameraType? cameraType, DeviceRole? deviceRole});
+  $R call({CameraType? cameraType});
   SettingsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -205,15 +148,11 @@ class _SettingsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsState> $mapper =
       SettingsStateMapper.ensureInitialized();
   @override
-  $R call({CameraType? cameraType, DeviceRole? deviceRole}) =>
-      $apply(FieldCopyWithData({
-        if (cameraType != null) #cameraType: cameraType,
-        if (deviceRole != null) #deviceRole: deviceRole
-      }));
+  $R call({CameraType? cameraType}) => $apply(
+      FieldCopyWithData({if (cameraType != null) #cameraType: cameraType}));
   @override
-  SettingsState $make(CopyWithData data) => SettingsState(
-      cameraType: data.get(#cameraType, or: $value.cameraType),
-      deviceRole: data.get(#deviceRole, or: $value.deviceRole));
+  SettingsState $make(CopyWithData data) =>
+      SettingsState(cameraType: data.get(#cameraType, or: $value.cameraType));
 
   @override
   SettingsStateCopyWith<$R2, SettingsState, $Out2> $chain<$R2, $Out2>(
