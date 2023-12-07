@@ -21,7 +21,7 @@ class App extends StatelessWidget {
           create: (context) => P2PBloc(
             socketRepository: SocketRepository(),
             webRtcService: WebRtcService(),
-          )..add(InitSocketEventListener()),
+          ),
           lazy: false,
         ),
         BlocProvider(

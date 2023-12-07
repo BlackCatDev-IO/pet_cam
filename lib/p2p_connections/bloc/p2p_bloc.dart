@@ -17,69 +17,19 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
   })  : _socketRepository = socketRepository,
         _webRtcService = webRtcService,
         super(const P2PState()) {
-    on<InitSocketEventListener>(_onInitSocketEventListener);
-    on<EmitSocketEvent>(_onEmitSocketEvent);
     on<CreateAndSendRtcOffer>(_onCreateAndSendRtcOffer);
     on<ConnectToRemoteCamera>(_onConnectToRemoteCamera);
     on<CloseConnection>(_onCloseConnection);
     on<ToggleCamera>(_onToggleCamera);
     on<SetDeviceRole>(_onSetDeviceRole);
 
-    _initIceListener();
+    _initStreamListeners();
   }
 
   final SocketRepository _socketRepository;
   final WebRtcService _webRtcService;
 
   final _iceCandidateList = <Map<String, dynamic>>[];
-
-  Future<void> _onInitSocketEventListener(
-    InitSocketEventListener event,
-    Emitter<P2PState> emit,
-  ) async {
-    await emit.onEach(
-      _socketRepository.eventStream,
-      onData: (eventData) async {
-        final eventName = eventData['event'] as String;
-        _logP2PBloc('event name: $eventName');
-
-        if (eventName == SocketEvents.roomJoined.name &&
-            _webRtcService.offer != null) {
-          if (!_webRtcService.isPeerConnectionInitialized) {
-            await _webRtcService.createAndSendRtcOffer();
-          }
-          _socketRepository.emitSocketEvent(
-            SocketMessage(
-              event: SocketEvents.sendWebRtcOffer.name,
-              room: room,
-              outputEvent: 'offer',
-              data: {
-                'room': room,
-                'offer': _webRtcService.offer!.toMap(),
-                'ice': _iceCandidateList,
-              },
-            ),
-          );
-
-          await _webRtcService.addMediaTracksToPeer();
-        }
-
-        if (eventName == SocketEvents.offer.name) {
-          await _answerRtcOffer(eventData);
-        }
-
-        if (eventName == SocketEvents.roomMessage.name) {
-          _handleRemoteRoomMessage(eventData);
-        }
-
-        if (eventName == SocketEvents.disconnect.name) {
-          await _webRtcService.closeConnection(
-            remoteStream: state.remoteStream,
-          );
-        }
-      },
-    );
-  }
 
   Future<void> _onCreateAndSendRtcOffer(
     CreateAndSendRtcOffer event,
@@ -117,20 +67,6 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
       onData: (mediaStream) => state.copyWith(
         connectionStatus: ConnectionStatus.connected,
         remoteStream: mediaStream,
-      ),
-    );
-  }
-
-  Future<void> _onEmitSocketEvent(
-    EmitSocketEvent event,
-    Emitter<P2PState> emit,
-  ) async {
-    _socketRepository.emitSocketEvent(
-      SocketMessage(
-        event: event.eventName,
-        room: room,
-        outputEvent: SocketEvents.roomMessage.name,
-        data: event.data,
       ),
     );
   }
@@ -238,8 +174,53 @@ class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
     );
   }
 
-  void _initIceListener() {
+  void _initStreamListeners() {
     _webRtcService.iceCandidateStream.listen(_iceCandidateList.add);
+    _initSocketEventListener();
+  }
+
+  void _initSocketEventListener() {
+    _socketRepository.eventStream.listen(
+      (eventData) async {
+        final eventName = eventData['event'] as String;
+        _logP2PBloc('event name: $eventName');
+
+        if (eventName == SocketEvents.roomJoined.name &&
+            _webRtcService.offer != null) {
+          if (!_webRtcService.isPeerConnectionInitialized) {
+            await _webRtcService.createAndSendRtcOffer();
+          }
+          _socketRepository.emitSocketEvent(
+            SocketMessage(
+              event: SocketEvents.sendWebRtcOffer.name,
+              room: room,
+              outputEvent: 'offer',
+              data: {
+                'room': room,
+                'offer': _webRtcService.offer!.toMap(),
+                'ice': _iceCandidateList,
+              },
+            ),
+          );
+
+          await _webRtcService.addMediaTracksToPeer();
+        }
+
+        if (eventName == SocketEvents.offer.name) {
+          await _answerRtcOffer(eventData);
+        }
+
+        if (eventName == SocketEvents.roomMessage.name) {
+          _handleRemoteRoomMessage(eventData);
+        }
+
+        if (eventName == SocketEvents.disconnect.name) {
+          await _webRtcService.closeConnection(
+            remoteStream: state.remoteStream,
+          );
+        }
+      },
+    );
   }
 
   void _logP2PBloc(String message) {
