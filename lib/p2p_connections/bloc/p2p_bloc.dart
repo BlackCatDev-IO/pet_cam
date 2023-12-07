@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:pet_cam/p2p_connections/socket_message.dart';
 import 'package:pet_cam/p2p_connections/socket_repository.dart';
 import 'package:pet_cam/web_rtc/web_rtc_service.dart';
@@ -11,7 +12,7 @@ part 'p2p_event.dart';
 part 'p2p_state.dart';
 part 'p2p_bloc.mapper.dart';
 
-class P2PBloc extends Bloc<P2PEvent, P2PState> {
+class P2PBloc extends HydratedBloc<P2PEvent, P2PState> {
   P2PBloc({
     required SocketRepository socketRepository,
     required WebRtcService webRtcService,
@@ -243,5 +244,15 @@ class P2PBloc extends Bloc<P2PEvent, P2PState> {
   Future<void> close() {
     _webRtcService.dispose();
     return super.close();
+  }
+
+  @override
+  P2PState? fromJson(Map<String, dynamic> json) {
+    return P2PState.fromMap(json);
+  }
+
+  @override
+  Map<String, dynamic>? toJson(P2PState state) {
+    return state.toMap();
   }
 }
