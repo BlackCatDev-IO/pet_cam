@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pet_cam/l10n/l10n.dart';
+import 'package:pet_cam/lifecycle/cubit/lifecycle_cubit.dart';
 import 'package:pet_cam/p2p_connections/bloc/p2p_bloc.dart';
 import 'package:pet_cam/p2p_connections/socket_repository.dart';
 import 'package:pet_cam/p2p_connections/view/home_page.dart';
@@ -25,6 +26,10 @@ class App extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => SettingsBloc(),
+          lazy: false,
+        ),
+        BlocProvider(
+          create: (context) => LifecycleCubit(),
           lazy: false,
         ),
       ],
