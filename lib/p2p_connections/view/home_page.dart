@@ -38,11 +38,10 @@ class _HomePageState extends State<HomePage> {
             onDestinationSelected: (int index) {
               log('Nav index: $index');
 
-              if (index == 0) {
-                p2pBloc.add(SetDeviceRole(deviceRole: DeviceRole.viewer));
-              } else {
-                p2pBloc.add(SetDeviceRole(deviceRole: DeviceRole.camera));
-              }
+              final deviceRole =
+                  index == 0 ? DeviceRole.viewer : DeviceRole.camera;
+
+              p2pBloc.add(SetDeviceRole(deviceRole: deviceRole));
             },
             destinations: const [
               NavigationDestination(
@@ -177,17 +176,47 @@ class _ViewerTabState extends State<ViewerTab> {
 
                 log('_remoteRenderer: $_remoteRenderer');
                 return switch (state.connectionStatus) {
-                  ConnectionStatus.connecting =>
-                    const Center(child: CircularProgressIndicator()),
                   ConnectionStatus.connected => Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: RTCVideoView(_remoteRenderer),
+                          child: RTCVideoView(
+                            _remoteRenderer,
+                            placeholderBuilder: (context) => const ColoredBox(
+                              color: Colors.black,
+                              child: Center(
+                                child: Text(
+                                  'Awaiting remote stream',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  _ => const SizedBox(),
+                  _ => ColoredBox(
+                      color: Colors.black,
+                      child: state.connectionStatus.isConnecting
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            )
+                          : Center(
+                              child: IconButton(
+                                onPressed: () =>
+                                    p2pBloc.add(ConnectToRemoteCamera()),
+                                icon: const Icon(
+                                  Icons.videocam_rounded,
+                                  size: 50,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                    ),
                 };
               },
             ),
