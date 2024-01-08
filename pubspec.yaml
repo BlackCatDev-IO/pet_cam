@@ -16,7 +16,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_webrtc: ^0.9.46
-  get_it: ^7.6.4
+  get_it: ^7.6.6
   hydrated_bloc: ^9.1.2
   intl: ^0.18.1
   mixpanel_flutter: ^2.2.0
